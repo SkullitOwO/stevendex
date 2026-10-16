@@ -85,7 +85,7 @@ function packHTML(b) {
 function cardHTML(p, shiny = false, isNew = false) {
   const R = RAR[p.r], fan = fanOf(p);
   const sc = fan ? null : scene(p.types[0], p.id);
-  const inner = fan ? `<img class="full" src="${fan}" alt="${p.name}" loading="lazy">`
+  const inner = fan ? `<img class="full" src="${fan}" alt="${p.name}" loading="lazy" onerror="this.onerror=null;this.className='poke';this.src='${art(p, shiny)}'">`
     : `${sc.back}<img class="poke" src="${art(p, shiny)}" alt="${p.name}" loading="lazy">${sc.front}`;
   return `<div class="card r-${p.r}${shiny ? ' shiny' : ''}" style="--rc:${R.color}">
     <div class="frame" style="background:${sc ? sc.bg : '#222'}">${inner}
