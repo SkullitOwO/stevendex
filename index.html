@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Boosterdex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="logo">Booster<b>dex</b></div>
+  <nav class="tabs">
+    <button data-view="shop" class="on">Boosters</button>
+    <button data-view="dex">Collection <span id="dexCount"></span></button>
+  </nav>
+  <div class="coins"><span id="coins">0</span> ₽</div>
+</header>
+<main>
+  <section id="shop" class="view on">
+    <div class="shop-main">
+      <h1>Choisis ton booster</h1>
+      <div id="packs" class="packs"></div>
+    </div>
+    <aside id="panel" class="panel"></aside>
+  </section>
+  <section id="dex" class="view">
+    <div class="dex-head">
+      <h1>Collection</h1>
+      <div class="progress"><div id="dexBar"></div></div>
+      <span id="dexTxt" class="mono"></span>
+      <select id="dexFilter"></select>
+    </div>
+    <div id="dexGrid" class="dex-grid"></div>
+  </section>
+</main>
+<div id="overlay" class="overlay" hidden></div>
+<script src="data.js"></script>
+<script src="fanart.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
