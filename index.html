@@ -14,14 +14,16 @@
   <nav class="tabs">
     <button data-view="shop" class="on">Boutique</button>
     <button data-view="book">Classeur <span id="bookCount"></span></button>
+    <button data-view="market">Marché <span id="dupCount"></span></button>
   </nav>
+  <button class="mute" id="mute" aria-label="Couper le son">🔊</button>
   <div class="coins" title="Pokédollars"><i class="coin"></i><span id="coins">0</span></div>
 </header>
 <main>
   <section id="shop" class="view on">
     <div class="shop-head">
       <h1>Choisis ton booster</h1>
-      <p>Fais défiler, puis clique sur le booster pour le déchirer.</p>
+      <p>Fais défiler, puis clique sur le booster pour l'ouvrir.</p>
     </div>
     <div class="carousel">
       <button class="arrow" id="prev" aria-label="Booster précédent">‹</button>
@@ -43,11 +45,24 @@
     </div>
     <div id="pgTxt" class="pg-txt"></div>
   </section>
+  <section id="market" class="view">
+    <div class="shop-head">
+      <h1>Marché</h1>
+      <p>Revends tes cartes en trop contre des Pokédollars.</p>
+    </div>
+    <div class="mk-bar">
+      <div class="mk-total" id="mkTotal"></div>
+      <label class="mk-toggle"><input type="checkbox" id="mkDups" checked> Doublons seulement</label>
+      <button class="btn" id="mkSellAll">Vendre tous les doublons</button>
+    </div>
+    <div id="mkGrid" class="mk-grid"></div>
+  </section>
 </main>
 <div id="overlay" class="overlay" hidden></div>
 <script src="data.js"></script>
 <script src="scenes.js"></script>
 <script src="fanart.js"></script>
+<script src="sfx.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

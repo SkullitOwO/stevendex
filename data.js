@@ -10,13 +10,13 @@ const TYPES = {
   fee: { name: 'Fée', color: '#d685ad' },
 };
 
-// weight = tirage normal, guar = 5e carte (Rare ou mieux), dup = ◆ rendus par doublon
+// weight = tirage normal, guar = 5e carte (Rare ou mieux), dup = prix de revente au Marché
 const RARITIES = [
-  { key: 'C', sym: '◆', name: 'Commune', color: '#aab2bf', weight: 69, guar: 0, dup: 5 },
-  { key: 'R', sym: '◆◆', name: 'Rare', color: '#4f9dff', weight: 26, guar: 86, dup: 15 },
-  { key: 'E', sym: '◆◆◆', name: 'Épique', color: '#a66bff', weight: 4, guar: 11, dup: 40 },
-  { key: 'L', sym: '★', name: 'Légendaire', color: '#f5c518', weight: 0.8, guar: 2.5, dup: 120 },
-  { key: 'M', sym: '👑', name: 'Mythique', color: '#ff5a3c', weight: 0.15, guar: 0.5, dup: 400 },
+  { key: 'C', sym: '◆', name: 'Commune', color: '#aab2bf', weight: 69, guar: 0, dup: 10 },
+  { key: 'R', sym: '◆◆', name: 'Rare', color: '#4f9dff', weight: 26, guar: 86, dup: 25 },
+  { key: 'E', sym: '◆◆◆', name: 'Épique', color: '#a66bff', weight: 4, guar: 11, dup: 60 },
+  { key: 'L', sym: '★', name: 'Légendaire', color: '#f5c518', weight: 0.8, guar: 2.5, dup: 200 },
+  { key: 'M', sym: '👑', name: 'Mythique', color: '#ff5a3c', weight: 0.15, guar: 0.5, dup: 600 },
 ];
 
 const BOOSTERS = [

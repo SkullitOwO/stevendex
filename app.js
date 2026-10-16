@@ -16,6 +16,9 @@ const art = (p, shiny) =>
   `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${shiny ? 'shiny/' : ''}${p.id}.png`;
 const poolOf = b => POKEMON.filter(p => !b.types || p.types.some(t => b.types.includes(t)));
 const owns = p => (state.owned[p.id] || 0) + (state.owned[p.id + 's'] || 0);
+// Clé de collection : n° Pokédex, suivi de « s » pour la version dorée
+const keyInfo = k => ({ p: POKEMON[parseInt(k) - 1], shiny: k.endsWith('s') });
+const priceOf = k => { const { p, shiny } = keyInfo(k); return RAR[p.r].dup * (shiny ? 3 : 1); };
 
 // Probabilité de chaque rareté pour une carte ; une rareté absente du booster cède son poids à la suivante en dessous.
 function dist(pool, guar) {
@@ -57,16 +60,13 @@ function openPack(b) {
   if (state.pityS >= PITY_S && !cards.some(c => c.shiny)) pick(cards).shiny = true;
   if (cards.some(c => c.p.r === 'M')) state.pityM = 0;
   if (cards.some(c => c.shiny)) state.pityS = 0;
-  let gain = 0;
   for (const c of cards) {
     const k = c.p.id + (c.shiny ? 's' : '');
     c.isNew = !state.owned[k];
     state.owned[k] = (state.owned[k] || 0) + 1;
-    if (!c.isNew) gain += RAR[c.p.r].dup * (c.shiny ? 3 : 1);
   }
-  state.coins += gain;
   cards.sort((a, b) => RKEYS.indexOf(a.p.r) - RKEYS.indexOf(b.p.r) || a.shiny - b.shiny);
-  return { cards, gain };
+  return { cards };
 }
 
 /* ---------- Rendus ---------- */
@@ -97,7 +97,6 @@ function cardHTML(p, shiny = false, isNew = false) {
 const backHTML = () => '<div class="back"><div class="back-in"><div class="back-ball"></div><div class="back-txt">Boosterdex</div></div></div>';
 
 /* ---------- Boutique ---------- */
-const fmt = p => (p * 100).toLocaleString('fr-FR', { maximumFractionDigits: p < 0.1 ? 2 : 1 });
 function renderShop() {
   const b = BOOSTERS[sel];
   document.body.style.setProperty('--sel', b.color);
@@ -120,12 +119,15 @@ function tick() {
   $('#timer').innerHTML = free ? "Clique sur le booster pour l'ouvrir"
     : `Booster gratuit dans ${String(s / 60 | 0).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
+const dupKeys = () => Object.keys(state.owned).filter(k => state.owned[k] > 1);
 function renderTop() {
   $('#coins').textContent = state.coins.toLocaleString('fr-FR');
-  const got = POKEMON.filter(owns).length;
+  const got = POKEMON.filter(owns).length, dups = dupKeys().reduce((a, k) => a + state.owned[k] - 1, 0);
   $('#bookCount').textContent = `${got}/${POKEMON.length}`;
+  $('#dupCount').textContent = dups ? dups : '';
   $('#bookTxt').textContent = `${got} / ${POKEMON.length} Pokémon`;
   $('#bookBar').style.width = got / POKEMON.length * 100 + '%';
+  $('#mute').textContent = sfx.muted ? '🔇' : '🔊';
 }
 function buy() {
   const b = BOOSTERS[sel], free = Date.now() >= state.freeAt;
@@ -148,24 +150,49 @@ function burst(host, color, n) {
   }
 }
 const LABEL = c => c.shiny ? '✦ Carte dorée ✦' : c.p.r === 'M' ? '👑 Mythique !' : '★ Légendaire !';
+const rcOf = c => c.shiny ? '#ffd76a' : RAR[c.p.r].color;
 
 function openFlow(b, res) {
   const o = $('#overlay');
   o.hidden = false; o.className = 'overlay opening'; o.style.setProperty('--c', b.color); o.onclick = null;
   o.innerHTML = `<button class="skip" id="skip">Tout révéler ⏭</button>
     <div class="op-stage">
-      <div class="op-pack"><div class="op-light"></div><div class="tear-top">${packHTML(b)}</div><div class="tear-body">${packHTML(b)}</div><div class="tear-line"><span>✂</span></div></div>
-      <p class="hint">Clique sur le booster pour le déchirer</p>
+      <div class="op-pack" id="opPack"><div class="op-light"></div>
+        <div class="tear-top">${packHTML(b)}</div><div class="tear-body">${packHTML(b)}</div>
+        <div class="tear-line"><i id="cutFill"></i><span id="scis">✂</span></div></div>
+      <p class="hint" id="hint">Glisse le long des pointillés pour déchirer</p>
     </div>`;
+  sfx.whoosh();
   let done = false;
   $('#skip').onclick = () => { done = true; summary(b, res); };
-  o.querySelector('.op-pack').onclick = async e => {
-    const pk = e.currentTarget;
+  const pk = $('#opPack'), fill = $('#cutFill'), scis = $('#scis');
+  let prog = 0, dragging = false, lastTick = 0, x0 = 0;
+  const setProg = v => {
+    prog = Math.max(prog, Math.min(1, v));
+    fill.style.width = prog * 100 + '%';
+    scis.style.left = `calc(${prog * 100}% - 11px)`;
+    if (prog - lastTick > .07) { lastTick = prog; sfx.cut(); }
+  };
+  const tear = async () => {
     if (pk.classList.contains('torn')) return;
     pk.classList.add('torn');
-    o.querySelector('.hint').textContent = '';
-    await wait(1100);
+    sfx.tear();
+    $('#hint').textContent = '';
+    await wait(750);
     if (!done) deck(b, res, () => done);
+  };
+  const rel = e => { const r = pk.getBoundingClientRect(); return (e.clientX - r.left) / r.width; };
+  pk.onpointerdown = e => { if (pk.classList.contains('torn')) return; dragging = true; x0 = e.clientX; pk.setPointerCapture(e.pointerId); pk.classList.add('cutting'); };
+  pk.onpointermove = e => { if (dragging) setProg(rel(e)); };
+  pk.onpointerup = async e => {
+    if (!dragging) return;
+    dragging = false;
+    pk.classList.remove('cutting');
+    if (prog > .6) return tear();
+    if (Math.abs(e.clientX - x0) < 8) { // simple clic : les ciseaux font le tour tout seuls
+      for (let v = prog; v <= 1; v += .08) { setProg(v); await wait(28); }
+      return tear();
+    }
   };
 }
 
@@ -174,7 +201,7 @@ function deck(b, res, skipped) {
   o.querySelector('.op-stage').innerHTML = `
     <div class="counter" id="counter">Carte 1 / ${cards.length}</div>
     <div class="deck" id="deck"><div class="rays"></div>
-      ${cards.map((c, i) => `<div class="flip" data-i="${i}" style="--rc:${c.shiny ? '#ffd76a' : RAR[c.p.r].color};--d:${(cards.length - i) * 80}ms;z-index:${cards.length - i}">
+      ${cards.map((c, i) => `<div class="flip" data-i="${i}" style="--rc:${rcOf(c)};--d:${(cards.length - i) * 90}ms;z-index:${cards.length - i}">
         <div class="flip-in">${backHTML()}<div class="front">${cardHTML(c.p, c.shiny, c.isNew)}</div></div></div>`).join('')}
     </div>
     <div class="pile" id="pile"></div>
@@ -186,33 +213,37 @@ function deck(b, res, skipped) {
     if (d >= 0) f.style.transform = `translate(${d * 5}px, ${d * -5}px) rotate(${d * 2}deg)`;
   });
   layout();
+  cards.forEach((_, k) => setTimeout(sfx.flip, 200 + k * 90));
   deckEl.onclick = async () => {
     if (busy || skipped()) return;
     const f = flips[i], c = cards[i];
     if (!f) return;
     busy = true;
     if (!f.classList.contains('open')) {
-      const epic = c.shiny || 'LM'.includes(c.p.r);
-      if (epic) {
+      if (c.shiny || 'LM'.includes(c.p.r)) {
         $('#hint').textContent = '…';
         o.classList.add('dim');
         f.classList.add('charging');
+        sfx.charge();
         await wait(1300);
         f.classList.remove('charging');
         o.insertAdjacentHTML('beforeend', '<div class="flash"></div>');
         setTimeout(() => o.querySelector('.flash')?.remove(), 700);
         f.classList.add('open', 'epic');
         deckEl.classList.add('show-rays');
-        deckEl.style.setProperty('--rc', f.style.getPropertyValue('--rc'));
+        deckEl.style.setProperty('--rc', rcOf(c));
         o.classList.add('quake');
-        burst(deckEl, c.shiny ? '#ffd76a' : RAR[c.p.r].color, 60);
-        deckEl.insertAdjacentHTML('beforeend', `<div class="banner" style="--rc:${c.shiny ? '#ffd76a' : RAR[c.p.r].color}">${LABEL(c)}</div>`);
+        sfx.epic();
+        burst(deckEl, rcOf(c), 60);
+        deckEl.insertAdjacentHTML('beforeend', `<div class="banner" style="--rc:${rcOf(c)}">${LABEL(c)}</div>`);
         await wait(600);
         o.classList.remove('quake');
       } else {
         f.classList.add('open');
-        if (c.p.r === 'E') burst(deckEl, RAR.E.color, 22);
-        await wait(450);
+        sfx.flip();
+        setTimeout(() => sfx.reveal(c.p.r), 260);
+        if (c.p.r === 'E') setTimeout(() => burst(deckEl, RAR.E.color, 24), 260);
+        await wait(550);
       }
       $('#hint').textContent = i < cards.length - 1 ? 'Touche encore pour la carte suivante' : 'Touche pour voir ton booster';
     } else {
@@ -220,6 +251,7 @@ function deck(b, res, skipped) {
       deckEl.classList.remove('show-rays');
       deckEl.querySelector('.banner')?.remove();
       f.classList.add('gone');
+      sfx.whoosh();
       $('#pile').insertAdjacentHTML('beforeend', `<div class="mini">${cardHTML(c.p, c.shiny)}</div>`);
       i++;
       layout();
@@ -235,12 +267,12 @@ function deck(b, res, skipped) {
 function summary(b, res) {
   const o = $('#overlay');
   o.classList.remove('dim', 'quake');
-  const news = res.cards.filter(c => c.isNew).length, price = BOOSTERS[sel].price;
+  const news = res.cards.filter(c => c.isNew).length, dups = res.cards.length - news, price = BOOSTERS[sel].price;
   const canAgain = Date.now() >= state.freeAt || state.coins >= price;
   o.querySelector('#skip')?.remove();
   o.querySelector('.op-stage').innerHTML = `<div class="summary">
     <h2>Booster ${b.name} ouvert !</h2>
-    <p class="sum-sub">${news ? `${news} nouvelle${news > 1 ? 's' : ''} carte${news > 1 ? 's' : ''} pour ton classeur` : 'Que des cartes que tu avais déjà'}${res.gain ? ` · +${res.gain} Pokédollars grâce aux doublons` : ''}</p>
+    <p class="sum-sub">${news ? `${news} nouvelle${news > 1 ? 's' : ''} carte${news > 1 ? 's' : ''} pour ton classeur` : 'Que des cartes que tu avais déjà'}${dups ? ` · ${dups} doublon${dups > 1 ? 's' : ''} à revendre au Marché` : ''}</p>
     <div class="sum-row">${res.cards.map((c, i) => `<div class="sum-card" style="--d:${i * 110}ms">${cardHTML(c.p, c.shiny, c.isNew)}</div>`).join('')}</div>
     <div class="sum-actions">
       <button class="btn ghost" id="toBook">Voir le classeur</button>
@@ -248,6 +280,7 @@ function summary(b, res) {
     </div>
     <button class="link" id="close">Retour à la boutique</button>
   </div>`;
+  res.cards.forEach((_, i) => setTimeout(sfx.pop, i * 110));
   $('#close').onclick = closeOverlay;
   $('#toBook').onclick = () => { closeOverlay(); show('book'); };
   $('#again').onclick = () => { closeOverlay(); buy(); };
@@ -283,6 +316,7 @@ function turn(dir) {
   const v = perView(), np = page + dir * v, bd = $('#binder');
   if (turning || np < 0 || np >= PAGES) return;
   turning = true;
+  sfx.page();
   const end = () => { page = np; turning = false; renderBook(); };
   if (v === 1) { bd.classList.add(dir > 0 ? 'slide-next' : 'slide-prev'); return setTimeout(end, 260); }
   const leaf = document.createElement('div');
@@ -295,22 +329,68 @@ function turn(dir) {
   setTimeout(end, 820); // pas animationend : il ne part jamais si la page est redessinée pendant l'animation
 }
 
+/* ---------- Marché ---------- */
+function renderMarket() {
+  const onlyDups = $('#mkDups').checked;
+  const keys = Object.keys(state.owned).filter(k => state.owned[k] > (onlyDups ? 1 : 0))
+    .sort((a, b) => priceOf(b) - priceOf(a) || parseInt(a) - parseInt(b));
+  const total = dupKeys().reduce((a, k) => a + (state.owned[k] - 1) * priceOf(k), 0);
+  $('#mkTotal').innerHTML = `Tes doublons valent <b><i class="coin"></i>${total.toLocaleString('fr-FR')}</b>`;
+  $('#mkSellAll').disabled = !total;
+  $('#mkGrid').innerHTML = keys.length ? keys.map(k => {
+    const { p, shiny } = keyInfo(k), n = state.owned[k];
+    return `<div class="mk-item">${cardHTML(p, shiny)}
+      <div class="mk-row"><span class="mk-n">×${n}</span><button class="sell" data-k="${k}"><i class="coin"></i>${priceOf(k)}</button></div></div>`;
+  }).join('') : `<p class="mk-empty">${onlyDups ? 'Aucun doublon pour l\'instant. Ouvre des boosters !' : 'Ton classeur est vide.'}</p>`;
+}
+function flyCoin(from) {
+  const a = from.getBoundingClientRect(), b = $('#coins').getBoundingClientRect(), c = document.createElement('i');
+  c.className = 'coin fly';
+  document.body.appendChild(c);
+  c.animate([{ transform: `translate(${a.left + a.width / 2}px, ${a.top}px) scale(1.6)` },
+    { transform: `translate(${(a.left + b.left) / 2}px, ${Math.min(a.top, b.top) - 80}px) scale(1.3)`, offset: .5 },
+    { transform: `translate(${b.left}px, ${b.top + 6}px) scale(.8)` }], { duration: 650, easing: 'ease-in' }).onfinish = () => {
+    c.remove(); sfx.coin();
+    $('.coins').animate([{ transform: 'scale(1.15)' }, { transform: 'scale(1)' }], 250);
+  };
+}
+let armed = null;
+function sell(btn) {
+  const k = btn.dataset.k, n = state.owned[k];
+  if (!n) return;
+  if (n === 1 && armed !== btn) { // dernier exemplaire : on demande confirmation
+    armed = btn; btn.textContent = 'Sûr ? Dernière !'; btn.classList.add('warn');
+    setTimeout(() => { if (armed === btn) { armed = null; renderMarket(); } }, 2500);
+    return;
+  }
+  armed = null;
+  state.owned[k] = n - 1;
+  if (!state.owned[k]) delete state.owned[k];
+  state.coins += priceOf(k);
+  save(); flyCoin(btn); renderTop(); renderMarket();
+}
+
 function show(v) {
   document.querySelectorAll('.view').forEach(e => e.classList.toggle('on', e.id === v));
   document.querySelectorAll('.tabs button').forEach(e => e.classList.toggle('on', e.dataset.view === v));
   if (v === 'book') renderBook();
+  if (v === 'market') renderMarket();
 }
 
 /* ---------- Événements ---------- */
-const select = i => { sel = Math.max(0, Math.min(BOOSTERS.length - 1, i)); renderShop(); };
+const select = i => {
+  const ni = Math.max(0, Math.min(BOOSTERS.length - 1, i));
+  if (ni !== sel) sfx.select();
+  sel = ni; renderShop();
+};
 $('#packs').onclick = e => {
   const s = e.target.closest('.slot');
   if (!s) return;
   if (+s.dataset.i !== sel) return select(+s.dataset.i);
-  const b = BOOSTERS[sel];
-  if (Date.now() < state.freeAt && state.coins < b.price) {
+  if (Date.now() < state.freeAt && state.coins < BOOSTERS[sel].price) {
     s.classList.remove('nope'); void s.offsetWidth; s.classList.add('nope');
-    $('#timer').textContent = 'Pas assez de Pokédollars pour celui-ci';
+    sfx.nope();
+    $('#timer').textContent = 'Pas assez de Pokédollars : revends des doublons au Marché';
     return;
   }
   buy();
@@ -319,6 +399,17 @@ $('#prev').onclick = () => select(sel - 1);
 $('#next').onclick = () => select(sel + 1);
 $('#pgPrev').onclick = () => turn(-1);
 $('#pgNext').onclick = () => turn(1);
+$('#mute').onclick = () => { sfx.toggle(); renderTop(); };
+$('#mkDups').onchange = renderMarket;
+$('#mkGrid').onclick = e => { const b = e.target.closest('.sell'); if (b) sell(b); };
+$('#mkSellAll').onclick = e => {
+  const keys = dupKeys();
+  if (!keys.length) return;
+  for (const k of keys) { state.coins += (state.owned[k] - 1) * priceOf(k); state.owned[k] = 1; }
+  save();
+  for (let i = 0; i < Math.min(keys.length, 8); i++) setTimeout(() => flyCoin(e.target), i * 90);
+  renderTop(); renderMarket();
+};
 document.querySelector('.tabs').onclick = e => e.target.closest('button') && show(e.target.closest('button').dataset.view);
 document.addEventListener('keydown', e => {
   const o = $('#overlay');
@@ -326,12 +417,14 @@ document.addEventListener('keydown', e => {
   if (!o.hidden) return;
   const d = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
   if (!d) return;
-  $('#shop').classList.contains('on') ? select(sel + d) : turn(d);
+  if ($('#shop').classList.contains('on')) select(sel + d);
+  else if ($('#book').classList.contains('on')) turn(d);
 });
 $('#binder').onclick = e => {
   const c = e.target.closest('.pocket.has');
   if (!c || turning) return;
   const p = POKEMON[c.dataset.id - 1], n = state.owned[p.id] || 0, s = state.owned[p.id + 's'] || 0, o = $('#overlay');
+  sfx.pop();
   o.hidden = false; o.className = 'overlay zoomed';
   o.innerHTML = `<div class="zoom">${cardHTML(p, c.dataset.s === '1')}
     <p>${p.name} · ${RAR[p.r].name}${n ? ` · ×${n}` : ''}${s ? ` · ✦ dorée ×${s}` : ''}</p></div>`;
@@ -341,7 +434,7 @@ addEventListener('resize', () => !turning && $('#book').classList.contains('on')
 
 // Inclinaison 3D + reflet holo qui suit la souris
 document.addEventListener('pointermove', e => {
-  const el = e.target.closest('.card, .slot.on .pack, .op-pack');
+  const el = e.target.closest('.card, .slot.on .pack, .op-pack:not(.cutting)');
   if (!el) return;
   const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
   el.style.setProperty('--rx', (0.5 - y) * 18 + 'deg');
