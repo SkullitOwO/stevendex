@@ -1,7 +1,7 @@
 /* ---------- Jouer : duel de boosters et combat de cartes ---------- */
 const PTS = { C: 1, R: 3, E: 8, L: 20, M: 50 };
 const STAKES = [50, 100, 250, 500];
-const G = { online: false, oppName: "L'ordi", S: null, me: 'A' };
+const G = { online: true, oppName: 'Ton ami', S: null, me: 'A' };
 let myName = 'Dresseur';
 try { myName = localStorage.getItem('boosterdex-name') || 'Dresseur'; } catch {}
 
@@ -58,7 +58,7 @@ function quitGame() { send({ t: 'bye' }); netClose(); closeOverlay(); renderTop(
 const stage = html => { const g = $('#gStage'); if (g) { g.innerHTML = html; g.onclick = null; } return g; };
 const errBox = msg => `<div class="g-card"><h2>Oups</h2><p>${msg}</p><button class="btn" onclick="quitGame()">Retour</button></div>`;
 const waitBox = msg => `<div class="g-card"><div class="spinner"></div><p>${msg}</p></div>`;
-const vsTxt = () => G.online ? `contre <b>${G.oppName}</b>` : "contre l'ordi";
+const vsTxt = () => `contre <b>${G.oppName}</b>`;
 
 async function hostRoom(mode) {
   gameScreen(waitBox('Création du salon…'));
@@ -86,16 +86,6 @@ async function joinRoom(code) {
 }
 
 /* ---------- Duel de boosters ---------- */
-function botPack(b) {
-  const pool = poolOf(b), n = dist(pool, false), g = dist(pool, true), taken = new Set();
-  return [roll(n), roll(n), roll(n), roll(n), roll(g)].map(r => {
-    let bucket = pool.filter(p => p.r === r && !taken.has(p.id));
-    if (!bucket.length) bucket = pool.filter(p => !taken.has(p.id));
-    const p = pick(bucket);
-    taken.add(p.id);
-    return { p, shiny: Math.random() < SHINY };
-  }).sort((a, b) => RKEYS.indexOf(a.p.r) - RKEYS.indexOf(b.p.r) || a.shiny - b.shiny);
-}
 const scoreOf = c => PTS[c.p.r] * (c.shiny ? 2 : 1);
 const RULES = 'Barème : Commune 1 · Rare 3 · Épique 8 · Légendaire 20 · Mythique 50 · dorée ×2';
 
@@ -108,14 +98,13 @@ function duelSetup() {
       <h3>Booster</h3><div class="pick">${BOOSTERS.map((x, i) => `<button class="chip${i === bi ? ' on' : ''}" data-b="${i}" style="--c:${x.color}">${x.icon} ${x.name}</button>`).join('')}</div>
       <h3>Mise</h3><div class="pick">${STAKES.map(s => `<button class="chip${s === stake ? ' on' : ''}" data-s="${s}"><i class="coin"></i>${s}</button>`).join('')}</div>
       <p class="muted">Il te faut <b><i class="coin"></i>${cost}</b> (booster ${b.price} + mise ${stake}). ${RULES}</p>
-      <button class="btn" id="go" ${state.coins < cost ? 'disabled' : ''}>${G.online ? 'Envoyer le défi' : 'Lancer le duel'}</button></div>`);
+      <button class="btn" id="go" ${state.coins < cost ? 'disabled' : ''}>Envoyer le défi</button></div>`);
     g.onclick = async e => {
       const t = e.target.closest('button');
       if (!t) return;
       if (t.dataset.b) { bi = +t.dataset.b; sfx.select(); return draw(); }
       if (t.dataset.s) { stake = +t.dataset.s; sfx.select(); return draw(); }
       if (t.id !== 'go') return;
-      if (!G.online) return runDuel(bi, stake);
       send({ t: 'duel', b: bi, stake });
       stage(waitBox(`${G.oppName} regarde ton défi…`));
       const r = await recv('answer');
@@ -146,11 +135,11 @@ async function runDuel(bi, stake) {
   const mine = openPack(b).cards;
   save(); renderTop(); renderShop();
   let theirs;
-  if (G.online) {
+  {
     send({ t: 'pack', cards: mine.map(c => [c.p.id, c.shiny ? 1 : 0]) });
     stage(waitBox(`${G.oppName} ouvre son booster…`));
     theirs = (await recv('pack')).cards.map(([id, s]) => ({ p: POKEMON[id - 1], shiny: !!s }));
-  } else theirs = botPack(b);
+  }
   duelReveal(stake, mine, theirs);
 }
 async function duelReveal(stake, mine, theirs) {
@@ -167,7 +156,8 @@ async function duelReveal(stake, mine, theirs) {
     for (const [cs, rid, sid] of [[theirs, 'rOpp', 'sOpp'], [mine, 'rMe', 'sMe']]) {
       const c = cs[i], f = $('#' + rid).children[i], pts = scoreOf(c), epic = c.shiny || 'LM'.includes(c.p.r);
       if (!f) return; // partie quittée pendant l'animation
-      if (epic) { f.classList.add('charging'); sfx.charge(); await wait(1000); f.classList.remove('charging'); sfx.epic(); burst(f, rcOf(c), 40); }
+      if (epic) { f.classList.add('charging'); sfx.charge(); await wait(1000); f.classList.remove('charging'); sfx.epic(); burst(f, rcOf(c), 40); spells(f, c, 1); }
+      else if (c.p.r === 'E') spells(f, c, .6);
       else { sfx.flip(); setTimeout(() => sfx.reveal(c.p.r), 200); }
       f.classList.add('open');
       f.insertAdjacentHTML('beforeend', `<span class="pts" style="--rc:${rcOf(c)}">+${pts}</span>`);
@@ -188,7 +178,7 @@ async function duelReveal(stake, mine, theirs) {
     <div class="sum-actions"><button class="btn" id="rematch">Revanche</button><button class="btn ghost" id="leave">Quitter</button></div>`;
   if (win) burst(end, '#ffd76a', 60);
   $('#leave').onclick = quitGame;
-  $('#rematch').onclick = () => (!G.online || net.host ? duelSetup() : duelWait());
+  $('#rematch').onclick = () => (net.host ? duelSetup() : duelWait());
 }
 
 /* ---------- Combat de cartes ---------- */
@@ -420,12 +410,10 @@ $('#play').onclick = e => {
   const b = e.target.closest('[data-act]');
   if (!b) return;
   const mode = b.closest('.mode').dataset.mode;
-  G.online = b.dataset.act === 'host';
-  G.oppName = G.online ? 'Ton ami' : "L'ordi";
+  G.online = true;
+  G.oppName = 'Ton ami';
   sfx.select();
-  if (G.online) return hostRoom(mode);
-  gameScreen('');
-  mode === 'duel' ? duelSetup() : battleTeam();
+  hostRoom(mode);
 };
 $('#joinBtn').onclick = () => {
   const code = $('#joinCode').value.trim().toUpperCase();

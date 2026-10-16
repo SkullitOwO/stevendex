@@ -140,7 +140,7 @@ function buy() {
 }
 
 /* ---------- Ouverture ---------- */
-const closeOverlay = () => { const o = $('#overlay'); o.hidden = true; o.className = 'overlay'; o.innerHTML = ''; o.onclick = null; };
+const closeOverlay = () => { clearInterval(fxLoop); const o = $('#overlay'); o.hidden = true; o.className = 'overlay'; o.innerHTML = ''; o.onclick = null; };
 function burst(host, color, n) {
   for (let i = 0; i < n; i++) {
     const s = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 140 + Math.random() * 300;
@@ -168,6 +168,34 @@ function confetti(o, c) {
     setTimeout(() => k.remove(), 4800);
   }
 }
+// Effets du type : couleur des éclairs + élément qui s'échappe de la carte
+const TYPE_FX = { feu: ['#ff7a2a', '🔥'], eau: ['#4fb2ff', '💧'], plante: ['#5fd35f', '🍃'], electrik: ['#ffe14d', '⚡'], glace: ['#9fe8ff', '❄️'],
+  psy: ['#ff6ec7', '✨'], spectre: ['#b98cff', '👻'], poison: ['#c86bff', '☠️'], combat: ['#ff6b4a', '💥'], sol: ['#e0b060', '🪨'], roche: ['#c9a75a', '🪨'],
+  vol: ['#bfe3ff', '🪶'], insecte: ['#a6d94a', '🍃'], dragon: ['#8a6bff', '🐉'], fee: ['#ffb3e0', '✨'], acier: ['#cfd6e0', '⚙️'], normal: ['#ffffff', '⭐'] };
+function spells(host, c, power = 1) {
+  const [col, emo] = TYPE_FX[c.p.types[0]];
+  const bolts = Array.from({ length: Math.round(7 * power) }, () => {
+    const a = Math.random() * Math.PI * 2;
+    let pts = `${(Math.cos(a) * 34).toFixed(1)},${(Math.sin(a) * 46).toFixed(1)}`;
+    for (let s = 1; s <= 5; s++) {
+      const r = 34 + s * 13;
+      pts += ` ${(Math.cos(a) * r + (Math.random() - .5) * 16).toFixed(1)},${(Math.sin(a) * r * 1.3 + (Math.random() - .5) * 16).toFixed(1)}`;
+    }
+    return `<polyline points="${pts}" style="animation-delay:${(Math.random() * .5).toFixed(2)}s"/>`;
+  }).join('');
+  host.insertAdjacentHTML('beforeend', `<svg class="bolts" viewBox="-100 -100 200 200" style="--fx:${col}">${bolts}</svg>`);
+  const svg = host.lastElementChild;
+  setTimeout(() => svg.remove(), 1300);
+  for (let i = 0; i < Math.round(12 * power); i++) {
+    const s = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 160 + Math.random() * 220;
+    s.className = 'fx';
+    s.textContent = emo;
+    s.style.cssText = `--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d - 60}px;--r:${(Math.random() - .5) * 120}deg;--s:${.8 + Math.random() * .9};animation-delay:${Math.random() * .35}s`;
+    host.appendChild(s);
+    setTimeout(() => s.remove(), 1700);
+  }
+}
+let fxLoop = null;
 const LABEL = c => c.shiny ? '✦ Carte dorée ✦' : c.p.r === 'M' ? '👑 Mythique !' : '★ Légendaire !';
 const rcOf = c => c.shiny ? '#ffd76a' : RAR[c.p.r].color;
 
@@ -276,6 +304,9 @@ function deck(b, res, skipped) {
         sfx.epic();
         burst(deckEl, col, 90);
         confetti(o, c);
+        spells(deckEl, c, 2);
+        clearInterval(fxLoop);
+        fxLoop = setInterval(() => spells(deckEl, c, 1), 1400);
         deckEl.insertAdjacentHTML('beforeend', `<div class="banner" style="--rc:${col}">${[...LABEL(c)].map((ch, n) => `<span style="--i:${n}">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('')}</div>
           <div class="reveal-name" style="--rc:${col}">${c.p.name}<small>${RAR[c.p.r].name}${c.shiny ? ' · dorée' : ''}</small></div>`);
         await wait(1100);
@@ -284,11 +315,12 @@ function deck(b, res, skipped) {
         f.classList.add('open');
         sfx.flip();
         setTimeout(() => sfx.reveal(c.p.r), 260);
-        if (c.p.r === 'E') setTimeout(() => burst(deckEl, RAR.E.color, 24), 260);
+        if (c.p.r === 'E') setTimeout(() => { burst(deckEl, RAR.E.color, 24); spells(deckEl, c, .7); }, 260);
         await wait(550);
       }
       $('#hint').textContent = i < cards.length - 1 ? 'Touche encore pour la carte suivante' : 'Touche pour voir ton booster';
     } else {
+      clearInterval(fxLoop);
       o.classList.remove('dim', 'gold', 'myth', 'leg');
       deckEl.classList.remove('show-rays');
       deckEl.querySelectorAll('.banner, .reveal-name').forEach(x => x.remove());
