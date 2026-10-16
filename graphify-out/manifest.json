@@ -1,8 +1,8 @@
 {
   "app.js": {
-    "mtime": 1792194660.7014232,
-    "seen": 1792194688.225577,
-    "ast_hash": "404586e9c878503db9006a0a0b83519e",
+    "mtime": 1792194807.6090977,
+    "seen": 1792194831.957568,
+    "ast_hash": "505e8dba2547959756247ff77479b038",
     "semantic_hash": ""
   },
   "data.js": {
@@ -12,15 +12,15 @@
     "semantic_hash": ""
   },
   "fanart.js": {
-    "mtime": 1792194054.336193,
-    "seen": 1792194075.4389641,
-    "ast_hash": "93817439775cc78c127fea5675396cd3",
+    "mtime": 1792194802.7358265,
+    "seen": 1792194831.957568,
+    "ast_hash": "949c8b4819a68dc05707fe5d000ab160",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792194271.888867,
-    "seen": 1792194312.1058223,
-    "ast_hash": "d11994965bbeb8f7db1830c378a7303f",
+    "mtime": 1792194807.605986,
+    "seen": 1792194831.957568,
+    "ast_hash": "94240d83a9eb5df9a59e8e1aa7036b3b",
     "semantic_hash": ""
   },
   "scenes.js": {
@@ -36,9 +36,9 @@
     "semantic_hash": ""
   },
   "play.js": {
-    "mtime": 1792194120.3817737,
-    "seen": 1792194142.478219,
-    "ast_hash": "13e93ae4acb443cdf483fedf20d1155c",
+    "mtime": 1792194807.6075735,
+    "seen": 1792194831.957568,
+    "ast_hash": "f8ba2f73b7d5b72a633a0f1f617fad4f",
     "semantic_hash": ""
   },
   "steven.png": {

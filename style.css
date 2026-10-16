@@ -454,8 +454,6 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 @keyframes tease { to { box-shadow: 0 10px 25px #0007, 0 0 34px 8px var(--rc); } }
 .flip.tease { animation: teaseBob 1.2s ease-in-out infinite; }
 @keyframes teaseBob { 50% { translate: 0 -6px; } }
-.suck { position: absolute; left: 50%; top: 50%; z-index: 15; width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 12px 2px var(--c); pointer-events: none; animation: suck .6s ease-in forwards; }
-@keyframes suck { from { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.6); opacity: 0; } 30% { opacity: 1; } to { transform: translate(-50%, -50%) scale(.2); } }
 .flip.charging .back { filter: brightness(1.3); }
 .shock { position: absolute; left: 50%; top: 50%; z-index: 12; width: 120px; height: 120px; margin: -60px; border-radius: 50%; pointer-events: none;
   border: 6px solid var(--rc); box-shadow: 0 0 30px var(--rc), inset 0 0 30px var(--rc); animation: shock .9s ease-out forwards; }

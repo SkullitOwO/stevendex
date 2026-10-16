@@ -140,7 +140,7 @@ function buy() {
 }
 
 /* ---------- Ouverture ---------- */
-const closeOverlay = () => { clearInterval(fxLoop); const o = $('#overlay'); o.hidden = true; o.className = 'overlay'; o.innerHTML = ''; o.onclick = null; };
+const closeOverlay = () => { const o = $('#overlay'); o.hidden = true; o.className = 'overlay'; o.innerHTML = ''; o.onclick = null; };
 function burst(host, color, n) {
   for (let i = 0; i < n; i++) {
     const s = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 140 + Math.random() * 300;
@@ -151,13 +151,6 @@ function burst(host, color, n) {
   }
 }
 const epicOf = c => c.shiny || 'LM'.includes(c.p.r);
-function implode(host, color) {
-  const s = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 200 + Math.random() * 140;
-  s.className = 'suck';
-  s.style.cssText = `--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d}px;--c:${color}`;
-  host.appendChild(s);
-  setTimeout(() => s.remove(), 650);
-}
 function confetti(o, c) {
   const pal = c.shiny ? ['#ffd76a', '#fff3b0', '#ffb300', '#fff'] : c.p.r === 'M' ? ['#ff6b6b', '#ffd93b', '#6bff95', '#5ac8ff', '#b46bff'] : ['#f5c518', '#fff1b0', '#fff', '#ffcb05'];
   for (let i = 0; i < 110; i++) {
@@ -195,7 +188,6 @@ function spells(host, c, power = 1) {
     setTimeout(() => s.remove(), 1700);
   }
 }
-let fxLoop = null;
 const LABEL = c => c.shiny ? '✦ Carte dorée ✦' : c.p.r === 'M' ? '👑 Mythique !' : '★ Légendaire !';
 const rcOf = c => c.shiny ? '#ffd76a' : RAR[c.p.r].color;
 
@@ -290,9 +282,7 @@ function deck(b, res, skipped) {
         f.classList.remove('tease');
         f.classList.add('charging');
         sfx.charge();
-        const suck = setInterval(() => implode(deckEl, col), 60);
-        await wait(1500);
-        clearInterval(suck);
+        for (const pw of [.4, .7, 1, 1.4]) { spells(deckEl, c, pw); await wait(375); }
         f.classList.remove('charging');
         o.insertAdjacentHTML('beforeend', '<div class="flash"></div>');
         setTimeout(() => o.querySelector('.flash')?.remove(), 900);
@@ -305,22 +295,20 @@ function deck(b, res, skipped) {
         burst(deckEl, col, 90);
         confetti(o, c);
         spells(deckEl, c, 2);
-        clearInterval(fxLoop);
-        fxLoop = setInterval(() => spells(deckEl, c, 1), 1400);
         deckEl.insertAdjacentHTML('beforeend', `<div class="banner" style="--rc:${col}">${[...LABEL(c)].map((ch, n) => `<span style="--i:${n}">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('')}</div>
           <div class="reveal-name" style="--rc:${col}">${c.p.name}<small>${RAR[c.p.r].name}${c.shiny ? ' · dorée' : ''}</small></div>`);
         await wait(1100);
         o.classList.remove('quake');
       } else {
+        if (c.p.r === 'E') { spells(deckEl, c, .8); await wait(250); }
         f.classList.add('open');
         sfx.flip();
         setTimeout(() => sfx.reveal(c.p.r), 260);
-        if (c.p.r === 'E') setTimeout(() => { burst(deckEl, RAR.E.color, 24); spells(deckEl, c, .7); }, 260);
+        if (c.p.r === 'E') setTimeout(() => burst(deckEl, RAR.E.color, 24), 260);
         await wait(550);
       }
       $('#hint').textContent = i < cards.length - 1 ? 'Touche encore pour la carte suivante' : 'Touche pour voir ton booster';
     } else {
-      clearInterval(fxLoop);
       o.classList.remove('dim', 'gold', 'myth', 'leg');
       deckEl.classList.remove('show-rays');
       deckEl.querySelectorAll('.banner, .reveal-name').forEach(x => x.remove());

@@ -156,8 +156,8 @@ async function duelReveal(stake, mine, theirs) {
     for (const [cs, rid, sid] of [[theirs, 'rOpp', 'sOpp'], [mine, 'rMe', 'sMe']]) {
       const c = cs[i], f = $('#' + rid).children[i], pts = scoreOf(c), epic = c.shiny || 'LM'.includes(c.p.r);
       if (!f) return; // partie quittée pendant l'animation
-      if (epic) { f.classList.add('charging'); sfx.charge(); await wait(1000); f.classList.remove('charging'); sfx.epic(); burst(f, rcOf(c), 40); spells(f, c, 1); }
-      else if (c.p.r === 'E') spells(f, c, .6);
+      if (epic) { f.classList.add('charging'); sfx.charge(); for (const pw of [.4, .7, 1]) { spells(f, c, pw); await wait(330); } f.classList.remove('charging'); sfx.epic(); burst(f, rcOf(c), 40); spells(f, c, 1.2); }
+      else if (c.p.r === 'E') { spells(f, c, .6); await wait(220); }
       else { sfx.flip(); setTimeout(() => sfx.reveal(c.p.r), 200); }
       f.classList.add('open');
       f.insertAdjacentHTML('beforeend', `<span class="pts" style="--rc:${rcOf(c)}">+${pts}</span>`);
