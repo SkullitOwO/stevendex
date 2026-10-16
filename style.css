@@ -477,13 +477,6 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .conf { position: fixed; top: -20px; z-index: 30; height: 14px; border-radius: 2px; background: var(--c); pointer-events: none; animation: fall var(--t) cubic-bezier(.3, .2, .6, 1) var(--d) forwards; }
 @keyframes fall { to { transform: translate(var(--x), 110vh) rotate(var(--r)); } }
 
-/* Sorts qui jaillissent des cartes */
-.bolts { position: absolute; left: 50%; top: 50%; width: 260%; height: 260%; transform: translate(-50%, -50%); z-index: 14; pointer-events: none; overflow: visible;
-  filter: drop-shadow(0 0 3px var(--fx)) drop-shadow(0 0 8px var(--fx)); }
-.bolts polyline { fill: none; stroke: #fff; stroke-width: 1.4; stroke-linejoin: bevel; stroke-dasharray: 160; stroke-dashoffset: 160; opacity: 0;
-  animation: bolt .65s ease-out forwards; }
-@keyframes bolt { 10% { opacity: 1; } 45% { stroke-dashoffset: 0; opacity: 1; } 55% { opacity: .2; } 65% { opacity: 1; } 100% { stroke-dashoffset: -160; opacity: 0; } }
-.fx { position: absolute; left: 50%; top: 50%; z-index: 16; font-style: normal; font-size: 28px; pointer-events: none; filter: drop-shadow(0 0 8px #fff8);
-  animation: fxOut 1.3s cubic-bezier(.15, .7, .3, 1) both; }
-@keyframes fxOut { from { transform: translate(-50%, -50%) scale(.2) rotate(0); opacity: 0; } 15% { opacity: 1; }
-  to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(var(--s)) rotate(var(--r)); opacity: 0; } }
+
+
+.fx-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 60; pointer-events: none; }

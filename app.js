@@ -140,7 +140,7 @@ function buy() {
 }
 
 /* ---------- Ouverture ---------- */
-const closeOverlay = () => { const o = $('#overlay'); o.hidden = true; o.className = 'overlay'; o.innerHTML = ''; o.onclick = null; };
+const closeOverlay = () => { FX.clear(); const o = $('#overlay'); o.hidden = true; o.className = 'overlay'; o.innerHTML = ''; o.onclick = null; };
 function burst(host, color, n) {
   for (let i = 0; i < n; i++) {
     const s = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 140 + Math.random() * 300;
@@ -159,33 +159,6 @@ function confetti(o, c) {
     k.style.cssText = `left:${Math.random() * 100}vw;--c:${pal[i % pal.length]};--x:${(Math.random() - .5) * 240}px;--r:${Math.random() * 1080 - 540}deg;--t:${2.2 + Math.random() * 1.6}s;--d:${Math.random() * .7}s;width:${6 + Math.random() * 8}px`;
     o.appendChild(k);
     setTimeout(() => k.remove(), 4800);
-  }
-}
-// Effets du type : couleur des éclairs + élément qui s'échappe de la carte
-const TYPE_FX = { feu: ['#ff7a2a', '🔥'], eau: ['#4fb2ff', '💧'], plante: ['#5fd35f', '🍃'], electrik: ['#ffe14d', '⚡'], glace: ['#9fe8ff', '❄️'],
-  psy: ['#ff6ec7', '✨'], spectre: ['#b98cff', '👻'], poison: ['#c86bff', '☠️'], combat: ['#ff6b4a', '💥'], sol: ['#e0b060', '🪨'], roche: ['#c9a75a', '🪨'],
-  vol: ['#bfe3ff', '🪶'], insecte: ['#a6d94a', '🍃'], dragon: ['#8a6bff', '🐉'], fee: ['#ffb3e0', '✨'], acier: ['#cfd6e0', '⚙️'], normal: ['#ffffff', '⭐'] };
-function spells(host, c, power = 1) {
-  const [col, emo] = TYPE_FX[c.p.types[0]];
-  const bolts = Array.from({ length: Math.round(7 * power) }, () => {
-    const a = Math.random() * Math.PI * 2;
-    let pts = `${(Math.cos(a) * 34).toFixed(1)},${(Math.sin(a) * 46).toFixed(1)}`;
-    for (let s = 1; s <= 5; s++) {
-      const r = 34 + s * 13;
-      pts += ` ${(Math.cos(a) * r + (Math.random() - .5) * 16).toFixed(1)},${(Math.sin(a) * r * 1.3 + (Math.random() - .5) * 16).toFixed(1)}`;
-    }
-    return `<polyline points="${pts}" style="animation-delay:${(Math.random() * .5).toFixed(2)}s"/>`;
-  }).join('');
-  host.insertAdjacentHTML('beforeend', `<svg class="bolts" viewBox="-100 -100 200 200" style="--fx:${col}">${bolts}</svg>`);
-  const svg = host.lastElementChild;
-  setTimeout(() => svg.remove(), 1300);
-  for (let i = 0; i < Math.round(12 * power); i++) {
-    const s = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 160 + Math.random() * 220;
-    s.className = 'fx';
-    s.textContent = emo;
-    s.style.cssText = `--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d - 60}px;--r:${(Math.random() - .5) * 120}deg;--s:${.8 + Math.random() * .9};animation-delay:${Math.random() * .35}s`;
-    host.appendChild(s);
-    setTimeout(() => s.remove(), 1700);
   }
 }
 const LABEL = c => c.shiny ? '✦ Carte dorée ✦' : c.p.r === 'M' ? '👑 Mythique !' : '★ Légendaire !';
@@ -282,7 +255,7 @@ function deck(b, res, skipped) {
         f.classList.remove('tease');
         f.classList.add('charging');
         sfx.charge();
-        for (const pw of [.4, .7, 1, 1.4]) { spells(deckEl, c, pw); await wait(375); }
+        for (const pw of [.5, .8, 1.1, 1.5]) { FX.charge(f, c.p.types[0], col, pw); await wait(375); }
         f.classList.remove('charging');
         o.insertAdjacentHTML('beforeend', '<div class="flash"></div>');
         setTimeout(() => o.querySelector('.flash')?.remove(), 900);
@@ -292,19 +265,18 @@ function deck(b, res, skipped) {
         deckEl.classList.add('show-rays');
         o.classList.add('quake', c.shiny ? 'gold' : c.p.r === 'M' ? 'myth' : 'leg');
         sfx.epic();
-        burst(deckEl, col, 90);
+        FX.explode(f, c.p.types[0], col, 1.6);
         confetti(o, c);
-        spells(deckEl, c, 2);
         deckEl.insertAdjacentHTML('beforeend', `<div class="banner" style="--rc:${col}">${[...LABEL(c)].map((ch, n) => `<span style="--i:${n}">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('')}</div>
           <div class="reveal-name" style="--rc:${col}">${c.p.name}<small>${RAR[c.p.r].name}${c.shiny ? ' · dorée' : ''}</small></div>`);
         await wait(1100);
         o.classList.remove('quake');
       } else {
-        if (c.p.r === 'E') { spells(deckEl, c, .8); await wait(250); }
+        if (c.p.r === 'E') { FX.charge(f, c.p.types[0], RAR.E.color, .7); await wait(250); }
         f.classList.add('open');
         sfx.flip();
         setTimeout(() => sfx.reveal(c.p.r), 260);
-        if (c.p.r === 'E') setTimeout(() => burst(deckEl, RAR.E.color, 24), 260);
+        if (c.p.r === 'E') setTimeout(() => FX.explode(f, c.p.types[0], RAR.E.color, .5), 260);
         await wait(550);
       }
       $('#hint').textContent = i < cards.length - 1 ? 'Touche encore pour la carte suivante' : 'Touche pour voir ton booster';
