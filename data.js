@@ -1,13 +1,13 @@
 const TYPES = {
-  normal: { name: 'Normal', color: '#a8a77a', icon: '★', atk: "Charge" }, feu: { name: 'Feu', color: '#ee8130', icon: '🔥', atk: "Flammèche" },
-  eau: { name: 'Eau', color: '#6390f0', icon: '💧', atk: "Pistolet à O" }, plante: { name: 'Plante', color: '#7ac74c', icon: '🍃', atk: "Fouet Lianes" },
-  electrik: { name: 'Électrik', color: '#e6c01c', icon: '⚡', atk: "Éclair" }, glace: { name: 'Glace', color: '#6cc8c4', icon: '❄️', atk: "Poudreuse" },
-  combat: { name: 'Combat', color: '#c22e28', icon: '👊', atk: "Poing Karaté" }, poison: { name: 'Poison', color: '#a33ea1', icon: '☠️', atk: "Dard-Venin" },
-  sol: { name: 'Sol', color: '#c9a64a', icon: '⛰️', atk: "Coud'Boue" }, vol: { name: 'Vol', color: '#a98ff3', icon: '🪶', atk: "Cru-Ailes" },
-  psy: { name: 'Psy', color: '#f95587', icon: '👁️', atk: "Choc Mental" }, insecte: { name: 'Insecte', color: '#a6b91a', icon: '🐛', atk: "Piqûre" },
-  roche: { name: 'Roche', color: '#b6a136', icon: '🪨', atk: "Jet-Pierres" }, spectre: { name: 'Spectre', color: '#735797', icon: '👻', atk: "Léchouille" },
-  dragon: { name: 'Dragon', color: '#6f35fc', icon: '🐉', atk: "Draco-Rage" }, acier: { name: 'Acier', color: '#9a9ab5', icon: '⚙️', atk: "Griffe Acier" },
-  fee: { name: 'Fée', color: '#d685ad', icon: '✨', atk: "Vent Féerique" },
+  normal: { name: 'Normal', color: '#a8a77a' }, feu: { name: 'Feu', color: '#ee8130' },
+  eau: { name: 'Eau', color: '#6390f0' }, plante: { name: 'Plante', color: '#7ac74c' },
+  electrik: { name: 'Électrik', color: '#e6c01c' }, glace: { name: 'Glace', color: '#6cc8c4' },
+  combat: { name: 'Combat', color: '#c22e28' }, poison: { name: 'Poison', color: '#a33ea1' },
+  sol: { name: 'Sol', color: '#c9a64a' }, vol: { name: 'Vol', color: '#a98ff3' },
+  psy: { name: 'Psy', color: '#f95587' }, insecte: { name: 'Insecte', color: '#a6b91a' },
+  roche: { name: 'Roche', color: '#b6a136' }, spectre: { name: 'Spectre', color: '#735797' },
+  dragon: { name: 'Dragon', color: '#6f35fc' }, acier: { name: 'Acier', color: '#9a9ab5' },
+  fee: { name: 'Fée', color: '#d685ad' },
 };
 
 // weight = tirage normal, guar = 5e carte (Rare ou mieux), dup = ◆ rendus par doublon
@@ -20,15 +20,15 @@ const RARITIES = [
 ];
 
 const BOOSTERS = [
-  { id: 'mix', name: 'Mix', sub: 'Tous les Pokémon', icon: '⭐', color: '#f5c518', mascot: 25, price: 150, types: null },
-  { id: 'feu', name: 'Brasier', sub: 'Flammes et braises', icon: '🔥', color: '#ee6a2a', mascot: 6, price: 175, types: ['feu'] },
-  { id: 'eau', name: 'Abysses', sub: 'Océans et glaciers', icon: '💧', color: '#3f7fe0', mascot: 9, price: 175, types: ['eau', 'glace'] },
-  { id: 'plante', name: 'Sylve', sub: 'Forêts et insectes', icon: '🍃', color: '#4fa83a', mascot: 3, price: 175, types: ['plante', 'insecte'] },
-  { id: 'elec', name: 'Orage', sub: 'Haute tension', icon: '⚡', color: '#ffe600', mascot: 145, price: 175, types: ['electrik', 'acier'] },
-  { id: 'psy', name: 'Arcanes', sub: 'Esprit et magie', icon: '🔮', color: '#e0457b', mascot: 150, price: 175, types: ['psy', 'fee'] },
-  { id: 'spectre', name: 'Ombres', sub: 'Spectres et venins', icon: '👻', color: '#7b54a8', mascot: 94, price: 175, types: ['spectre', 'poison'] },
-  { id: 'combat', name: 'Arène', sub: 'Poings et rochers', icon: '👊', color: '#b5532e', mascot: 68, price: 175, types: ['combat', 'sol', 'roche'] },
-  { id: 'ciel', name: 'Firmament', sub: 'Ciel et dragons', icon: '🐉', color: '#5a5fd8', mascot: 149, price: 175, types: ['vol', 'dragon'] },
+  { id: 'mix', scene: 'mix', name: 'Mix', sub: 'Tous les Pokémon', icon: '⭐', color: '#f5c518', mascot: 25, price: 150, types: null },
+  { id: 'feu', scene: 'feu', name: 'Brasier', sub: 'Flammes et braises', icon: '🔥', color: '#ee6a2a', mascot: 6, price: 175, types: ['feu'] },
+  { id: 'eau', scene: 'eau', name: 'Abysses', sub: 'Océans et glaciers', icon: '💧', color: '#3f7fe0', mascot: 9, price: 175, types: ['eau', 'glace'] },
+  { id: 'plante', scene: 'plante', name: 'Sylve', sub: 'Forêts et insectes', icon: '🍃', color: '#4fa83a', mascot: 3, price: 175, types: ['plante', 'insecte'] },
+  { id: 'elec', scene: 'electrik', name: 'Orage', sub: 'Haute tension', icon: '⚡', color: '#ffe600', mascot: 145, price: 175, types: ['electrik', 'acier'] },
+  { id: 'psy', scene: 'psy', name: 'Arcanes', sub: 'Esprit et magie', icon: '🔮', color: '#e0457b', mascot: 150, price: 175, types: ['psy', 'fee'] },
+  { id: 'spectre', scene: 'spectre', name: 'Ombres', sub: 'Spectres et venins', icon: '👻', color: '#7b54a8', mascot: 94, price: 175, types: ['spectre', 'poison'] },
+  { id: 'combat', scene: 'combat', name: 'Arène', sub: 'Poings et rochers', icon: '👊', color: '#b5532e', mascot: 68, price: 175, types: ['combat', 'sol', 'roche'] },
+  { id: 'ciel', scene: 'dragon', name: 'Firmament', sub: 'Ciel et dragons', icon: '🐉', color: '#5a5fd8', mascot: 149, price: 175, types: ['vol', 'dragon'] },
 ];
 
 // Ligne n = Pokédex n : nom|types|rareté

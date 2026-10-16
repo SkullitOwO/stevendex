@@ -11,7 +11,7 @@ let sel = BOOSTERS[0];
 
 const pad = n => String(n).padStart(3, '0');
 const pick = a => a[Math.random() * a.length | 0];
-const art = (p, shiny) => window.FANART?.[p.id] ||
+const art = (p, shiny) =>
   `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${shiny ? 'shiny/' : ''}${p.id}.png`;
 const poolOf = b => POKEMON.filter(p => !b.types || p.types.some(t => b.types.includes(t)));
 
@@ -68,22 +68,25 @@ function buy() {
 }
 
 function packHTML(b) {
+  const sc = scene(b.scene, b.mascot);
   return `<div class="pack" style="--c:${b.color}"><div class="pack-in">
+    <div class="pk-art" style="background:${sc.bg}">${sc.back}<img class="mascot" src="${art(POKEMON[b.mascot - 1])}" alt="">${sc.front}</div>
     <div class="crimp"></div><div class="crimp bot"></div>
     <div class="logo-p">Booster<span>dex</span></div><div class="picon">${b.icon}</div>
-    <img class="mascot" src="${art(POKEMON[b.mascot - 1])}" alt="">
-    <div class="pname">${b.name}</div><div class="psub">${b.sub} · 5 cartes</div>
+    <div class="pk-foot"><div class="pname">${b.name}</div><div class="psub">${b.sub}</div></div>
   </div></div>`;
 }
+// Carte « full art » : décor du type, Pokémon au centre, nom en bas. Un fanart déclaré dans fanart.js remplace décor + artwork.
 function cardHTML(p, shiny = false, isNew = false) {
-  const R = RAR[p.r], T = TYPES[p.types[0]];
-  const hp = 30 + RKEYS.indexOf(p.r) * 30 + p.id * 7 % 4 * 10;
-  return `<div class="card r-${p.r}${shiny ? ' shiny' : ''}" style="--c:${T.color};--rc:${R.color}"><div class="c-in">
-    <div class="c-top"><b>${p.name}</b><span class="hp">PV<strong>${hp}</strong></span><span class="nrg">${T.icon}</span></div>
-    <div class="c-art"><img src="${art(p, shiny)}" alt="${p.name}" loading="lazy"></div>
-    <div class="c-info">N° ${pad(p.id)} · Pokémon ${p.types.map(t => TYPES[t].name).join(' / ')}</div>
-    <div class="c-atk"><span class="nrg">${T.icon}</span><b>${T.atk}</b><span>${Math.round(hp / 20) * 10}</span></div>
-    <div class="c-bot"><span>${pad(p.id)}/${POKEMON.length}</span><em>${shiny ? '✦ Doré' : R.sym + ' ' + R.name}</em></div>
+  const R = RAR[p.r], fan = window.FANART?.[p.id];
+  const sc = fan ? null : scene(p.types[0], p.id);
+  const inner = fan ? `<img class="full" src="${fan}" alt="${p.name}" loading="lazy">`
+    : `${sc.back}<img class="poke" src="${art(p, shiny)}" alt="${p.name}" loading="lazy">${sc.front}`;
+  return `<div class="card r-${p.r}${shiny ? ' shiny' : ''}" style="--rc:${R.color}">
+    <div class="frame" style="background:${sc ? sc.bg : '#222'}">${inner}
+      <div class="types">${p.types.map(t => `<i style="--t:${TYPES[t].color}">${TYPES[t].name}</i>`).join('')}</div>
+      <div class="sym">${shiny ? '✦' : R.sym}</div>
+      <div class="label"><b>${p.name}</b><span>N° ${pad(p.id)}</span></div>
     </div>${isNew ? '<div class="new">Nouveau !</div>' : ''}<div class="holo"></div></div>`;
 }
 
@@ -120,6 +123,7 @@ function tick() {
 }
 
 function render() {
+  document.body.style.setProperty('--sel', sel.color);
   $('#coins').textContent = state.coins.toLocaleString('fr-FR');
   const got = POKEMON.filter(p => state.owned[p.id] || state.owned[p.id + 's']).length;
   $('#dexCount').textContent = `${got}/${POKEMON.length}`;
@@ -149,6 +153,7 @@ function show(v) {
 function showOpening(b, res) {
   const o = $('#overlay');
   o.hidden = false;
+  o.style.setProperty('--c', b.color);
   o.innerHTML = `<div class="stage"><div class="big-pack shake">${packHTML(b)}</div><p class="hint">Clique sur le booster pour l'ouvrir</p></div>`;
   o.querySelector('.big-pack').onclick = e => {
     e.currentTarget.classList.replace('shake', 'tear');
