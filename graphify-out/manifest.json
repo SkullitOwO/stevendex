@@ -1,8 +1,8 @@
 {
   "app.js": {
-    "mtime": 1792194120.381268,
-    "seen": 1792194142.478219,
-    "ast_hash": "9be968474baaa53ed0b7e1059f686d13",
+    "mtime": 1792194296.3372936,
+    "seen": 1792194312.1058223,
+    "ast_hash": "6b5b7b6fb252a22441c95953062f5333",
     "semantic_hash": ""
   },
   "data.js": {
@@ -18,9 +18,9 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792194120.3802586,
-    "seen": 1792194142.478219,
-    "ast_hash": "814b2bcb7a8a2aa9400a9af4a9546eb7",
+    "mtime": 1792194271.888867,
+    "seen": 1792194312.1058223,
+    "ast_hash": "d11994965bbeb8f7db1830c378a7303f",
     "semantic_hash": ""
   },
   "scenes.js": {
@@ -39,6 +39,12 @@
     "mtime": 1792194120.3817737,
     "seen": 1792194142.478219,
     "ast_hash": "13e93ae4acb443cdf483fedf20d1155c",
+    "semantic_hash": ""
+  },
+  "steven.png": {
+    "mtime": 1792194235.9076748,
+    "seen": 1792194312.1058223,
+    "ast_hash": "ac6cae8c022d44eeba4ef40b1d3fd483",
     "semantic_hash": ""
   }
 }
