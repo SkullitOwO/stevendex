@@ -3,9 +3,10 @@
   "1": "app.js",
   "2": "openPack",
   "3": "data.js",
-  "4": "renderDex",
-  "5": "renderPanel",
+  "4": "deck",
+  "5": "renderShop",
   "6": "fanart.js",
   "7": "scenes.js",
-  "8": "f1"
+  "8": "f1",
+  "9": "renderBook"
 }

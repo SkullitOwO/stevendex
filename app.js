@@ -71,15 +71,13 @@ function openPack(b) {
 
 /* ---------- Rendus ---------- */
 function packHTML(b) {
-  const m = POKEMON[b.mascot - 1], fan = window.FANART?.[m.id];
-  const sc = fan ? null : scene(b.scene, b.mascot);
+  const sc = scene(b.scene, b.mascot);
   return `<div class="pack" style="--c:${b.color}"><div class="pack-in">
-    <div class="pk-art" style="background:${sc ? sc.bg : '#111'}">${fan ? `<img class="pk-img" src="${fan}" alt="" onerror="this.src='${art(m)}';this.className='mascot'">`
-      : `${sc.back}<img class="mascot" src="${art(m)}" alt="">${sc.front}`}</div>
-    <div class="pk-shade"></div>
+    <div class="pk-win" style="background:${sc.bg}">${sc.back}<img class="mascot" src="${art(POKEMON[b.mascot - 1])}" alt="">${sc.front}</div>
     <div class="crimp"></div><div class="crimp bot"></div>
-    <div class="pk-top"><div class="logo-p">Booster<span>dex</span></div><div class="pk-series">Série Kanto · 5 cartes</div></div>
-    <div class="pk-band"><span class="picon">${b.icon}</span><div><div class="pname">${b.name}</div><div class="psub">${b.sub}</div></div></div>
+    <div class="pk-logo">Booster<b>dex</b></div>
+    <div class="pk-seal"><b>5</b>cartes</div>
+    <div class="pk-name"><span class="pk-ico">${b.icon}</span><b>${b.name}</b><i>${b.sub}</i></div>
     <div class="pk-sheen"></div>
   </div></div>`;
 }
@@ -107,38 +105,20 @@ function renderShop() {
     const o = i - sel, a = Math.abs(o);
     return `<button class="slot${o ? '' : ' on'}" data-i="${i}" style="--o:${o};--a:${a};${a > 2 ? 'pointer-events:none;' : ''}" aria-label="${x.name}">${packHTML(x)}</button>`;
   }).join('');
-  const pool = poolOf(b), n = dist(pool, false), g = dist(pool, true);
-  const odds = RARITIES.filter(r => r.key !== 'C' && n[r.key] + g[r.key] > 0).map(r => {
-    const p = 1 - (1 - n[r.key]) ** 4 * (1 - g[r.key]);
-    return `<div class="odd" style="--rc:${r.color}"><span><i></i>${r.name}</span><div class="bar"><i style="width:${p * 100}%"></i></div><span class="v">${fmt(p)} %</span></div>`;
-  }).join('');
-  const got = pool.filter(owns).length;
   const info = $('#info');
   info.style.setProperty('--c', b.color);
-  info.innerHTML = `<h2><span class="picon">${b.icon}</span>${b.name}</h2>
-    <p class="sub">${b.sub} · ${got}/${pool.length} Pokémon déjà dans ton classeur</p>
-    <div class="chips">
-      <span>🃏 <b>5</b> cartes</span>
-      <span>💎 <b>1 Rare</b> ou mieux garantie</span>
-      ${n.M ? `<span>👑 Mythique garantie dans <b>${PITY_M - state.pityM}</b> boosters</span>` : ''}
-      <span>✦ Carte dorée garantie dans <b>${PITY_S - state.pityS}</b> boosters</span>
-    </div>
-    <button class="btn big" id="buy"></button>
-    <div class="timer" id="timer"></div>
-    <details class="odds"><summary>Chances d'obtenir au moins une…</summary>${odds}</details>`;
-  $('#buy').onclick = buy;
+  info.innerHTML = `<h2>${b.name}</h2><p class="sub">${b.sub}</p>
+    <div class="price" id="price"></div><p class="timer" id="timer"></p>`;
   tick();
 }
 function tick() {
-  const btn = $('#buy');
-  if (!btn) return;
-  const b = BOOSTERS[sel], left = state.freeAt - Date.now(), free = left <= 0;
-  btn.innerHTML = free ? 'Ouvrir <small>Gratuit !</small>' : `Ouvrir <small><i class="coin"></i>${b.price}</small>`;
-  btn.disabled = !free && state.coins < b.price;
-  const s = Math.ceil(left / 1000);
-  $('#timer').innerHTML = free ? '🎁 Ton booster gratuit t\'attend !'
-    : state.coins < b.price ? `Pas assez de Pokédollars · booster gratuit dans <b>${String(s / 60 | 0).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}</b>`
-    : `Prochain booster gratuit dans <b>${String(s / 60 | 0).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}</b>`;
+  const price = $('#price');
+  if (!price) return;
+  const b = BOOSTERS[sel], left = state.freeAt - Date.now(), free = left <= 0, s = Math.ceil(left / 1000);
+  price.className = 'price' + (free ? ' free' : state.coins < b.price ? ' poor' : '');
+  price.innerHTML = free ? 'Gratuit' : `<i class="coin"></i>${b.price}`;
+  $('#timer').innerHTML = free ? "Clique sur le booster pour l'ouvrir"
+    : `Booster gratuit dans ${String(s / 60 | 0).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
 function renderTop() {
   $('#coins').textContent = state.coins.toLocaleString('fr-FR');
@@ -323,7 +303,18 @@ function show(v) {
 
 /* ---------- Événements ---------- */
 const select = i => { sel = Math.max(0, Math.min(BOOSTERS.length - 1, i)); renderShop(); };
-$('#packs').onclick = e => { const s = e.target.closest('.slot'); if (s) select(+s.dataset.i); };
+$('#packs').onclick = e => {
+  const s = e.target.closest('.slot');
+  if (!s) return;
+  if (+s.dataset.i !== sel) return select(+s.dataset.i);
+  const b = BOOSTERS[sel];
+  if (Date.now() < state.freeAt && state.coins < b.price) {
+    s.classList.remove('nope'); void s.offsetWidth; s.classList.add('nope');
+    $('#timer').textContent = 'Pas assez de Pokédollars pour celui-ci';
+    return;
+  }
+  buy();
+};
 $('#prev').onclick = () => select(sel - 1);
 $('#next').onclick = () => select(sel + 1);
 $('#pgPrev').onclick = () => turn(-1);
