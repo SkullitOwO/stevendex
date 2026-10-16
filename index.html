@@ -12,27 +12,36 @@
 <header class="top">
   <div class="logo">Booster<b>dex</b></div>
   <nav class="tabs">
-    <button data-view="shop" class="on">Boosters</button>
-    <button data-view="dex">Collection <span id="dexCount"></span></button>
+    <button data-view="shop" class="on">Boutique</button>
+    <button data-view="book">Classeur <span id="bookCount"></span></button>
   </nav>
-  <div class="coins"><span id="coins">0</span> ₽</div>
+  <div class="coins" title="Pokédollars"><i class="coin"></i><span id="coins">0</span></div>
 </header>
 <main>
   <section id="shop" class="view on">
-    <div class="shop-main">
+    <div class="shop-head">
       <h1>Choisis ton booster</h1>
+      <p>Déchire-le, découvre tes 5 cartes et range-les dans ton classeur.</p>
+    </div>
+    <div class="carousel">
+      <button class="arrow" id="prev" aria-label="Booster précédent">‹</button>
       <div id="packs" class="packs"></div>
+      <button class="arrow" id="next" aria-label="Booster suivant">›</button>
     </div>
-    <aside id="panel" class="panel"></aside>
+    <div id="info" class="info"></div>
   </section>
-  <section id="dex" class="view">
-    <div class="dex-head">
-      <h1>Collection</h1>
-      <div class="progress"><div id="dexBar"></div></div>
-      <span id="dexTxt" class="mono"></span>
-      <select id="dexFilter"></select>
+  <section id="book" class="view">
+    <div class="book-head">
+      <h1>Mon classeur</h1>
+      <div class="progress"><div id="bookBar"></div></div>
+      <span id="bookTxt" class="book-txt"></span>
     </div>
-    <div id="dexGrid" class="dex-grid"></div>
+    <div class="book-wrap">
+      <button class="arrow" id="pgPrev" aria-label="Page précédente">‹</button>
+      <div id="binder" class="binder"></div>
+      <button class="arrow" id="pgNext" aria-label="Page suivante">›</button>
+    </div>
+    <div id="pgTxt" class="pg-txt"></div>
   </section>
 </main>
 <div id="overlay" class="overlay" hidden></div>

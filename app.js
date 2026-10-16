@@ -7,13 +7,15 @@ let saved = {};
 try { saved = JSON.parse(localStorage.getItem(SAVE)) || {}; } catch {}
 const state = Object.assign({ coins: 1000, owned: {}, pityM: 0, pityS: 0, freeAt: 0 }, saved);
 const save = () => { try { localStorage.setItem(SAVE, JSON.stringify(state)); } catch {} };
-let sel = BOOSTERS[0];
+let sel = 0;
 
 const pad = n => String(n).padStart(3, '0');
 const pick = a => a[Math.random() * a.length | 0];
+const wait = ms => new Promise(r => setTimeout(r, ms));
 const art = (p, shiny) =>
   `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${shiny ? 'shiny/' : ''}${p.id}.png`;
 const poolOf = b => POKEMON.filter(p => !b.types || p.types.some(t => b.types.includes(t)));
+const owns = p => (state.owned[p.id] || 0) + (state.owned[p.id + 's'] || 0);
 
 // Probabilité de chaque rareté pour une carte ; une rareté absente du booster cède son poids à la suivante en dessous.
 function dist(pool, guar) {
@@ -38,13 +40,22 @@ BOOSTERS.forEach(b => [false, true].forEach(g => {
   console.assert(RKEYS.every(k => !d[k] || pool.some(p => p.r === k)), 'rareté vide', b.id);
 }));
 
+// Jamais deux fois le même Pokémon dans un booster ; une carte déjà possédée est retirée une fois pour limiter les doublons.
+function draw(pool, r, taken) {
+  let bucket = pool.filter(p => p.r === r && !taken.has(p.id));
+  if (!bucket.length) bucket = pool.filter(p => !taken.has(p.id));
+  let p = pick(bucket);
+  if (owns(p)) p = pick(bucket);
+  taken.add(p.id);
+  return p;
+}
 function openPack(b) {
-  const pool = poolOf(b), n = dist(pool, false), g = dist(pool, true);
+  const pool = poolOf(b), n = dist(pool, false), g = dist(pool, true), taken = new Set();
   state.pityM++; state.pityS++;
   const rars = [roll(n), roll(n), roll(n), roll(n), n.M && state.pityM >= PITY_M ? 'M' : roll(g)];
-  const cards = rars.map(r => ({ p: pick(pool.filter(p => p.r === r)), shiny: Math.random() < SHINY }));
+  const cards = rars.map(r => ({ p: draw(pool, r, taken), shiny: Math.random() < SHINY }));
   if (state.pityS >= PITY_S && !cards.some(c => c.shiny)) pick(cards).shiny = true;
-  if (rars.includes('M')) state.pityM = 0;
+  if (cards.some(c => c.p.r === 'M')) state.pityM = 0;
   if (cards.some(c => c.shiny)) state.pityS = 0;
   let gain = 0;
   for (const c of cards) {
@@ -54,29 +65,25 @@ function openPack(b) {
     if (!c.isNew) gain += RAR[c.p.r].dup * (c.shiny ? 3 : 1);
   }
   state.coins += gain;
-  cards.sort((a, b) => RKEYS.indexOf(a.p.r) - RKEYS.indexOf(b.p.r));
+  cards.sort((a, b) => RKEYS.indexOf(a.p.r) - RKEYS.indexOf(b.p.r) || a.shiny - b.shiny);
   return { cards, gain };
 }
 
-function buy() {
-  const free = Date.now() >= state.freeAt;
-  if (!free && state.coins < sel.price) return;
-  if (free) state.freeAt = Date.now() + FREE_MS; else state.coins -= sel.price;
-  const res = openPack(sel);
-  save(); render();
-  showOpening(sel, res);
-}
-
+/* ---------- Rendus ---------- */
 function packHTML(b) {
-  const sc = scene(b.scene, b.mascot);
+  const m = POKEMON[b.mascot - 1], fan = window.FANART?.[m.id];
+  const sc = fan ? null : scene(b.scene, b.mascot);
   return `<div class="pack" style="--c:${b.color}"><div class="pack-in">
-    <div class="pk-art" style="background:${sc.bg}">${sc.back}<img class="mascot" src="${art(POKEMON[b.mascot - 1])}" alt="">${sc.front}</div>
+    <div class="pk-art" style="background:${sc ? sc.bg : '#111'}">${fan ? `<img class="pk-img" src="${fan}" alt="" onerror="this.src='${art(m)}';this.className='mascot'">`
+      : `${sc.back}<img class="mascot" src="${art(m)}" alt="">${sc.front}`}</div>
+    <div class="pk-shade"></div>
     <div class="crimp"></div><div class="crimp bot"></div>
-    <div class="logo-p">Booster<span>dex</span></div><div class="picon">${b.icon}</div>
-    <div class="pk-foot"><div class="pname">${b.name}</div><div class="psub">${b.sub}</div></div>
+    <div class="pk-top"><div class="logo-p">Booster<span>dex</span></div><div class="pk-series">Série Kanto · 5 cartes</div></div>
+    <div class="pk-band"><span class="picon">${b.icon}</span><div><div class="pname">${b.name}</div><div class="psub">${b.sub}</div></div></div>
+    <div class="pk-sheen"></div>
   </div></div>`;
 }
-// Carte « full art » : décor du type, Pokémon au centre, nom en bas. Un fanart déclaré dans fanart.js remplace décor + artwork.
+// Carte « full art » : fanart (ou décor du type + artwork officiel), nom en bas.
 function cardHTML(p, shiny = false, isNew = false) {
   const R = RAR[p.r], fan = window.FANART?.[p.id];
   const sc = fan ? null : scene(p.types[0], p.id);
@@ -89,115 +96,261 @@ function cardHTML(p, shiny = false, isNew = false) {
       <div class="label"><b>${p.name}</b><span>N° ${pad(p.id)}</span></div>
     </div>${isNew ? '<div class="new">Nouveau !</div>' : ''}<div class="holo"></div></div>`;
 }
+const backHTML = () => '<div class="back"><div class="back-in"><div class="back-ball"></div><div class="back-txt">Boosterdex</div></div></div>';
 
+/* ---------- Boutique ---------- */
 const fmt = p => (p * 100).toLocaleString('fr-FR', { maximumFractionDigits: p < 0.1 ? 2 : 1 });
-function renderPanel() {
-  const b = sel, pool = poolOf(b), n = dist(pool, false), g = dist(pool, true);
+function renderShop() {
+  const b = BOOSTERS[sel];
+  document.body.style.setProperty('--sel', b.color);
+  $('#packs').innerHTML = BOOSTERS.map((x, i) => {
+    const o = i - sel, a = Math.abs(o);
+    return `<button class="slot${o ? '' : ' on'}" data-i="${i}" style="--o:${o};--a:${a};${a > 2 ? 'pointer-events:none;' : ''}" aria-label="${x.name}">${packHTML(x)}</button>`;
+  }).join('');
+  const pool = poolOf(b), n = dist(pool, false), g = dist(pool, true);
   const odds = RARITIES.filter(r => r.key !== 'C' && n[r.key] + g[r.key] > 0).map(r => {
     const p = 1 - (1 - n[r.key]) ** 4 * (1 - g[r.key]);
-    return `<div class="odd" style="--rc:${r.color}"><span><i></i>${r.sym} ${r.name}</span><div class="bar"><i style="width:${p * 100}%"></i></div><span class="v">${fmt(p)} %</span></div>`;
+    return `<div class="odd" style="--rc:${r.color}"><span><i></i>${r.name}</span><div class="bar"><i style="width:${p * 100}%"></i></div><span class="v">${fmt(p)} %</span></div>`;
   }).join('');
-  const panel = $('#panel');
-  panel.style.setProperty('--c', b.color);
-  panel.innerHTML = `<div class="ph"><div class="em">${b.icon}</div><div><b>${b.name}</b><span>${b.sub}</span></div></div>
-    <div class="stats">
-      <div class="stat"><b>5</b><span>cartes par booster</span></div>
-      <div class="stat"><b style="color:${RAR.R.color}">Rare</b><span>ou mieux, garantie</span></div>
-      <div class="stat"><b style="color:${RAR.M.color}">${n.M ? PITY_M - state.pityM : '—'}</b><span>${n.M ? 'avant Mythique sûre' : 'pas de Mythique ici'}</span></div>
-      <div class="stat"><b style="color:#d9a400">${PITY_S - state.pityS}</b><span>avant le doré</span></div>
+  const got = pool.filter(owns).length;
+  const info = $('#info');
+  info.style.setProperty('--c', b.color);
+  info.innerHTML = `<h2><span class="picon">${b.icon}</span>${b.name}</h2>
+    <p class="sub">${b.sub} · ${got}/${pool.length} Pokémon déjà dans ton classeur</p>
+    <div class="chips">
+      <span>🃏 <b>5</b> cartes</span>
+      <span>💎 <b>1 Rare</b> ou mieux garantie</span>
+      ${n.M ? `<span>👑 Mythique garantie dans <b>${PITY_M - state.pityM}</b> boosters</span>` : ''}
+      <span>✦ Carte dorée garantie dans <b>${PITY_S - state.pityS}</b> boosters</span>
     </div>
-    <button class="see" id="see">Voir les ${pool.length} Pokémon</button>
-    <div class="odds"><h4>CHANCE PAR BOOSTER</h4>${odds}</div>
-    <button class="btn" id="buy"></button><div class="timer" id="timer"></div>`;
+    <button class="btn big" id="buy"></button>
+    <div class="timer" id="timer"></div>
+    <details class="odds"><summary>Chances d'obtenir au moins une…</summary>${odds}</details>`;
   $('#buy').onclick = buy;
-  $('#see').onclick = () => { $('#dexFilter').value = b.id; show('dex'); };
   tick();
 }
 function tick() {
-  const left = state.freeAt - Date.now(), free = left <= 0, btn = $('#buy');
-  btn.innerHTML = `Ouvrir <small>${free ? 'Gratuit' : sel.price + ' ₽'}</small>`;
-  btn.disabled = !free && state.coins < sel.price;
+  const btn = $('#buy');
+  if (!btn) return;
+  const b = BOOSTERS[sel], left = state.freeAt - Date.now(), free = left <= 0;
+  btn.innerHTML = free ? 'Ouvrir <small>Gratuit !</small>' : `Ouvrir <small><i class="coin"></i>${b.price}</small>`;
+  btn.disabled = !free && state.coins < b.price;
   const s = Math.ceil(left / 1000);
-  $('#timer').textContent = free ? 'Booster gratuit disponible !'
-    : `Prochain gratuit dans ${String(s / 60 | 0).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  $('#timer').innerHTML = free ? '🎁 Ton booster gratuit t\'attend !'
+    : state.coins < b.price ? `Pas assez de Pokédollars · booster gratuit dans <b>${String(s / 60 | 0).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}</b>`
+    : `Prochain booster gratuit dans <b>${String(s / 60 | 0).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}</b>`;
 }
-
-function render() {
-  document.body.style.setProperty('--sel', sel.color);
+function renderTop() {
   $('#coins').textContent = state.coins.toLocaleString('fr-FR');
-  const got = POKEMON.filter(p => state.owned[p.id] || state.owned[p.id + 's']).length;
-  $('#dexCount').textContent = `${got}/${POKEMON.length}`;
-  $('#dexTxt').textContent = `${got} / ${POKEMON.length}`;
-  $('#dexBar').style.width = got / POKEMON.length * 100 + '%';
-  $('#packs').innerHTML = BOOSTERS.map(b =>
-    `<button class="slot${b === sel ? ' on' : ''}" data-id="${b.id}">${packHTML(b)}<span class="price">${b.price} ₽</span></button>`).join('');
-  renderPanel();
+  const got = POKEMON.filter(owns).length;
+  $('#bookCount').textContent = `${got}/${POKEMON.length}`;
+  $('#bookTxt').textContent = `${got} / ${POKEMON.length} Pokémon`;
+  $('#bookBar').style.width = got / POKEMON.length * 100 + '%';
+}
+function buy() {
+  const b = BOOSTERS[sel], free = Date.now() >= state.freeAt;
+  if (!free && state.coins < b.price) return;
+  if (free) state.freeAt = Date.now() + FREE_MS; else state.coins -= b.price;
+  const res = openPack(b);
+  save(); renderTop(); renderShop();
+  openFlow(b, res);
 }
 
-function renderDex() {
-  const b = BOOSTERS.find(x => x.id === $('#dexFilter').value);
-  $('#dexGrid').innerHTML = poolOf(b).map(p => {
-    const n = state.owned[p.id] || 0, s = state.owned[p.id + 's'] || 0;
-    return n || s
-      ? `<div class="dex-cell has" data-id="${p.id}" data-s="${n ? 0 : 1}">${cardHTML(p, !n)}<div class="cnt">${n ? '×' + n : ''}${s ? ' ✦' + s : ''}</div></div>`
-      : `<div class="dex-cell"><img class="sil" src="${art(p)}" loading="lazy" alt=""><span>#${pad(p.id)}</span></div>`;
-  }).join('');
+/* ---------- Ouverture ---------- */
+const closeOverlay = () => { const o = $('#overlay'); o.hidden = true; o.className = 'overlay'; o.innerHTML = ''; o.onclick = null; };
+function burst(host, color, n) {
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 140 + Math.random() * 300;
+    s.className = 'spark' + (i % 3 ? '' : ' star');
+    s.style.cssText = `--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d}px;--c:${color};--s:${5 + Math.random() * 10}px;animation-delay:${Math.random() * 150}ms`;
+    host.appendChild(s);
+    setTimeout(() => s.remove(), 1800);
+  }
+}
+const LABEL = c => c.shiny ? '✦ Carte dorée ✦' : c.p.r === 'M' ? '👑 Mythique !' : '★ Légendaire !';
+
+function openFlow(b, res) {
+  const o = $('#overlay');
+  o.hidden = false; o.className = 'overlay opening'; o.style.setProperty('--c', b.color); o.onclick = null;
+  o.innerHTML = `<button class="skip" id="skip">Tout révéler ⏭</button>
+    <div class="op-stage">
+      <div class="op-pack"><div class="op-light"></div><div class="tear-top">${packHTML(b)}</div><div class="tear-body">${packHTML(b)}</div><div class="tear-line"><span>✂</span></div></div>
+      <p class="hint">Clique sur le booster pour le déchirer</p>
+    </div>`;
+  let done = false;
+  $('#skip').onclick = () => { done = true; summary(b, res); };
+  o.querySelector('.op-pack').onclick = async e => {
+    const pk = e.currentTarget;
+    if (pk.classList.contains('torn')) return;
+    pk.classList.add('torn');
+    o.querySelector('.hint').textContent = '';
+    await wait(1100);
+    if (!done) deck(b, res, () => done);
+  };
+}
+
+function deck(b, res, skipped) {
+  const o = $('#overlay'), cards = res.cards;
+  o.querySelector('.op-stage').innerHTML = `
+    <div class="counter" id="counter">Carte 1 / ${cards.length}</div>
+    <div class="deck" id="deck"><div class="rays"></div>
+      ${cards.map((c, i) => `<div class="flip" data-i="${i}" style="--rc:${c.shiny ? '#ffd76a' : RAR[c.p.r].color};--d:${(cards.length - i) * 80}ms;z-index:${cards.length - i}">
+        <div class="flip-in">${backHTML()}<div class="front">${cardHTML(c.p, c.shiny, c.isNew)}</div></div></div>`).join('')}
+    </div>
+    <div class="pile" id="pile"></div>
+    <p class="hint" id="hint">Touche la carte pour la retourner</p>`;
+  const flips = [...o.querySelectorAll('.flip')], deckEl = $('#deck');
+  let i = 0, busy = false;
+  const layout = () => flips.forEach((f, k) => {
+    const d = k - i;
+    if (d >= 0) f.style.transform = `translate(${d * 5}px, ${d * -5}px) rotate(${d * 2}deg)`;
+  });
+  layout();
+  deckEl.onclick = async () => {
+    if (busy || skipped()) return;
+    const f = flips[i], c = cards[i];
+    if (!f) return;
+    busy = true;
+    if (!f.classList.contains('open')) {
+      const epic = c.shiny || 'LM'.includes(c.p.r);
+      if (epic) {
+        $('#hint').textContent = '…';
+        o.classList.add('dim');
+        f.classList.add('charging');
+        await wait(1300);
+        f.classList.remove('charging');
+        o.insertAdjacentHTML('beforeend', '<div class="flash"></div>');
+        setTimeout(() => o.querySelector('.flash')?.remove(), 700);
+        f.classList.add('open', 'epic');
+        deckEl.classList.add('show-rays');
+        deckEl.style.setProperty('--rc', f.style.getPropertyValue('--rc'));
+        o.classList.add('quake');
+        burst(deckEl, c.shiny ? '#ffd76a' : RAR[c.p.r].color, 60);
+        deckEl.insertAdjacentHTML('beforeend', `<div class="banner" style="--rc:${c.shiny ? '#ffd76a' : RAR[c.p.r].color}">${LABEL(c)}</div>`);
+        await wait(600);
+        o.classList.remove('quake');
+      } else {
+        f.classList.add('open');
+        if (c.p.r === 'E') burst(deckEl, RAR.E.color, 22);
+        await wait(450);
+      }
+      $('#hint').textContent = i < cards.length - 1 ? 'Touche encore pour la carte suivante' : 'Touche pour voir ton booster';
+    } else {
+      o.classList.remove('dim');
+      deckEl.classList.remove('show-rays');
+      deckEl.querySelector('.banner')?.remove();
+      f.classList.add('gone');
+      $('#pile').insertAdjacentHTML('beforeend', `<div class="mini">${cardHTML(c.p, c.shiny)}</div>`);
+      i++;
+      layout();
+      await wait(350);
+      if (i >= cards.length) { busy = false; return summary(b, res); }
+      $('#counter').textContent = `Carte ${i + 1} / ${cards.length}`;
+      $('#hint').textContent = 'Touche la carte pour la retourner';
+    }
+    busy = false;
+  };
+}
+
+function summary(b, res) {
+  const o = $('#overlay');
+  o.classList.remove('dim', 'quake');
+  const news = res.cards.filter(c => c.isNew).length, price = BOOSTERS[sel].price;
+  const canAgain = Date.now() >= state.freeAt || state.coins >= price;
+  o.querySelector('#skip')?.remove();
+  o.querySelector('.op-stage').innerHTML = `<div class="summary">
+    <h2>Booster ${b.name} ouvert !</h2>
+    <p class="sum-sub">${news ? `${news} nouvelle${news > 1 ? 's' : ''} carte${news > 1 ? 's' : ''} pour ton classeur` : 'Que des cartes que tu avais déjà'}${res.gain ? ` · +${res.gain} Pokédollars grâce aux doublons` : ''}</p>
+    <div class="sum-row">${res.cards.map((c, i) => `<div class="sum-card" style="--d:${i * 110}ms">${cardHTML(c.p, c.shiny, c.isNew)}</div>`).join('')}</div>
+    <div class="sum-actions">
+      <button class="btn ghost" id="toBook">Voir le classeur</button>
+      <button class="btn" id="again" ${canAgain ? '' : 'disabled'}>Encore un ! <small>${Date.now() >= state.freeAt ? 'Gratuit' : `<i class="coin"></i>${price}`}</small></button>
+    </div>
+    <button class="link" id="close">Retour à la boutique</button>
+  </div>`;
+  $('#close').onclick = closeOverlay;
+  $('#toBook').onclick = () => { closeOverlay(); show('book'); };
+  $('#again').onclick = () => { closeOverlay(); buy(); };
+}
+
+/* ---------- Classeur ---------- */
+const PER = 9, PAGES = Math.ceil(POKEMON.length / PER);
+let page = 0;
+const perView = () => innerWidth < 760 ? 1 : 2;
+function pocketHTML(p) {
+  const n = state.owned[p.id] || 0, s = state.owned[p.id + 's'] || 0;
+  return n || s
+    ? `<div class="pocket has" data-id="${p.id}" data-s="${s ? 1 : 0}">${cardHTML(p, !!s)}${n + s > 1 ? `<b class="cnt">×${n + s}</b>` : ''}</div>`
+    : `<div class="pocket"><img class="sil" src="${art(p)}" loading="lazy" alt=""><span>N° ${pad(p.id)}</span></div>`;
+}
+function pageHTML(i) {
+  if (i < 0 || i >= PAGES) return '<div class="page blank"></div>';
+  return `<div class="page"><div class="pockets">${POKEMON.slice(i * PER, (i + 1) * PER).map(pocketHTML).join('')}</div><div class="pnum">${i + 1}</div></div>`;
+}
+function renderBook() {
+  const v = perView();
+  page -= page % v;
+  const bd = $('#binder');
+  bd.className = 'binder v' + v;
+  bd.innerHTML = v === 2 ? `<div class="leaf-l">${pageHTML(page)}</div><div class="rings"></div><div class="leaf-r">${pageHTML(page + 1)}</div>`
+    : `<div class="leaf-r">${pageHTML(page)}</div>`;
+  $('#pgTxt').textContent = v === 2 ? `Pages ${page + 1}–${Math.min(page + 2, PAGES)} sur ${PAGES}` : `Page ${page + 1} sur ${PAGES}`;
+  $('#pgPrev').disabled = page === 0;
+  $('#pgNext').disabled = page + v >= PAGES;
+}
+let turning = false;
+function turn(dir) {
+  const v = perView(), np = page + dir * v, bd = $('#binder');
+  if (turning || np < 0 || np >= PAGES) return;
+  turning = true;
+  const end = () => { page = np; turning = false; renderBook(); };
+  if (v === 1) { bd.classList.add(dir > 0 ? 'slide-next' : 'slide-prev'); return setTimeout(end, 260); }
+  const leaf = document.createElement('div');
+  leaf.className = 'turning ' + (dir > 0 ? 'fwd' : 'bwd');
+  leaf.innerHTML = dir > 0
+    ? `<div class="face">${pageHTML(page + 1)}</div><div class="face backf">${pageHTML(np)}</div>`
+    : `<div class="face">${pageHTML(page)}</div><div class="face backf">${pageHTML(np + 1)}</div>`;
+  bd.querySelector(dir > 0 ? '.leaf-r' : '.leaf-l').innerHTML = pageHTML(dir > 0 ? np + 1 : np);
+  bd.appendChild(leaf);
+  setTimeout(end, 820); // pas animationend : il ne part jamais si la page est redessinée pendant l'animation
 }
 
 function show(v) {
   document.querySelectorAll('.view').forEach(e => e.classList.toggle('on', e.id === v));
   document.querySelectorAll('.tabs button').forEach(e => e.classList.toggle('on', e.dataset.view === v));
-  if (v === 'dex') renderDex();
+  if (v === 'book') renderBook();
 }
 
-function showOpening(b, res) {
-  const o = $('#overlay');
-  o.hidden = false;
-  o.style.setProperty('--c', b.color);
-  o.innerHTML = `<div class="stage"><div class="big-pack shake">${packHTML(b)}</div><p class="hint">Clique sur le booster pour l'ouvrir</p></div>`;
-  o.querySelector('.big-pack').onclick = e => {
-    e.currentTarget.classList.replace('shake', 'tear');
-    setTimeout(() => reveal(res), 700);
-  };
-}
-function reveal(res) {
-  const o = $('#overlay');
-  o.innerHTML = `<div class="stage">
-    <div class="row">${res.cards.map((c, i) => `<div class="flip${'LM'.includes(c.p.r) || c.shiny ? ' glow' : ''}" style="--d:${i * 90}ms;--rc:${c.shiny ? '#ffd76a' : RAR[c.p.r].color}">
-      <div class="flip-in"><div class="back"></div><div class="front">${cardHTML(c.p, c.shiny, c.isNew)}</div></div></div>`).join('')}</div>
-    <div class="actions"><button id="all" class="btn ghost">Tout révéler</button><button id="done" class="btn" hidden>Continuer</button><span id="gain" class="mono"></span></div></div>`;
-  const flips = [...o.querySelectorAll('.flip')];
-  flips.forEach(f => f.onclick = () => {
-    if (f.classList.contains('open')) return;
-    f.classList.add('open');
-    if (flips.every(x => x.classList.contains('open'))) {
-      $('#all').hidden = true; $('#done').hidden = false;
-      if (res.gain) $('#gain').textContent = `+${res.gain} ₽ grâce aux doublons`;
-    }
-  });
-  $('#all').onclick = () => flips.forEach((f, i) => setTimeout(() => f.click(), i * 220));
-  $('#done').onclick = () => { o.hidden = true; o.innerHTML = ''; };
-}
-
-$('#packs').onclick = e => {
-  const s = e.target.closest('.slot');
-  if (s) { sel = BOOSTERS.find(b => b.id === s.dataset.id); render(); }
-};
+/* ---------- Événements ---------- */
+const select = i => { sel = Math.max(0, Math.min(BOOSTERS.length - 1, i)); renderShop(); };
+$('#packs').onclick = e => { const s = e.target.closest('.slot'); if (s) select(+s.dataset.i); };
+$('#prev').onclick = () => select(sel - 1);
+$('#next').onclick = () => select(sel + 1);
+$('#pgPrev').onclick = () => turn(-1);
+$('#pgNext').onclick = () => turn(1);
 document.querySelector('.tabs').onclick = e => e.target.closest('button') && show(e.target.closest('button').dataset.view);
-$('#dexFilter').innerHTML = BOOSTERS.map(b => `<option value="${b.id}">${b.id === 'mix' ? 'Tous' : b.name + ' — ' + b.sub}</option>`).join('');
-$('#dexFilter').onchange = renderDex;
-$('#dexGrid').onclick = e => {
-  const c = e.target.closest('.dex-cell.has');
-  if (!c) return;
+document.addEventListener('keydown', e => {
   const o = $('#overlay');
-  o.hidden = false;
-  o.innerHTML = `<div class="zoom">${cardHTML(POKEMON[c.dataset.id - 1], c.dataset.s === '1')}</div>`;
-  o.onclick = ev => { if (!ev.target.closest('.zoom')) { o.hidden = true; o.innerHTML = ''; o.onclick = null; } };
+  if (e.key === 'Escape' && o.classList.contains('zoomed')) return closeOverlay();
+  if (!o.hidden) return;
+  const d = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+  if (!d) return;
+  $('#shop').classList.contains('on') ? select(sel + d) : turn(d);
+});
+$('#binder').onclick = e => {
+  const c = e.target.closest('.pocket.has');
+  if (!c || turning) return;
+  const p = POKEMON[c.dataset.id - 1], n = state.owned[p.id] || 0, s = state.owned[p.id + 's'] || 0, o = $('#overlay');
+  o.hidden = false; o.className = 'overlay zoomed';
+  o.innerHTML = `<div class="zoom">${cardHTML(p, c.dataset.s === '1')}
+    <p>${p.name} · ${RAR[p.r].name}${n ? ` · ×${n}` : ''}${s ? ` · ✦ dorée ×${s}` : ''}</p></div>`;
+  o.onclick = ev => { if (!ev.target.closest('.zoom .card')) closeOverlay(); };
 };
+addEventListener('resize', () => !turning && $('#book').classList.contains('on') && renderBook());
 
 // Inclinaison 3D + reflet holo qui suit la souris
 document.addEventListener('pointermove', e => {
-  const el = e.target.closest('.card, .pack');
+  const el = e.target.closest('.card, .slot.on .pack, .op-pack');
   if (!el) return;
   const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
   el.style.setProperty('--rx', (0.5 - y) * 18 + 'deg');
@@ -206,9 +359,10 @@ document.addEventListener('pointermove', e => {
   el.style.setProperty('--my', y * 100 + '%');
 });
 document.addEventListener('pointerout', e => {
-  const el = e.target.closest('.card, .pack');
+  const el = e.target.closest('.card, .pack, .op-pack');
   if (el && !el.contains(e.relatedTarget)) { el.style.removeProperty('--rx'); el.style.removeProperty('--ry'); }
 });
 
-render();
+renderTop();
+renderShop();
 setInterval(tick, 1000);
