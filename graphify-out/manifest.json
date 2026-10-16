@@ -1,14 +1,14 @@
 {
   "app.js": {
-    "mtime": 1792187438.230311,
-    "seen": 1792187596.026004,
-    "ast_hash": "1437edb405e262cdcd1f304617ac02dc",
+    "mtime": 1792188101.68082,
+    "seen": 1792188105.6869102,
+    "ast_hash": "d14231c17c02d32f13683618324aba1d",
     "semantic_hash": ""
   },
   "data.js": {
-    "mtime": 1792187425.5369437,
-    "seen": 1792187596.026004,
-    "ast_hash": "cf4de5cc4948808a55646825a0721254",
+    "mtime": 1792188009.776387,
+    "seen": 1792188105.6869102,
+    "ast_hash": "bd03527a487752ade534dd4088eb9042",
     "semantic_hash": ""
   },
   "fanart.js": {
@@ -18,9 +18,15 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792187425.5384576,
-    "seen": 1792187596.026511,
-    "ast_hash": "a1086e4e32c9ffab148c720003ab264f",
+    "mtime": 1792188009.776387,
+    "seen": 1792188105.6869102,
+    "ast_hash": "b6171f90ea383d3a4866aac7ecd640cc",
+    "semantic_hash": ""
+  },
+  "scenes.js": {
+    "mtime": 1792187996.5114546,
+    "seen": 1792188105.6869102,
+    "ast_hash": "6ba0906512a066c44dbe0b9c7a9e2b0e",
     "semantic_hash": ""
   }
 }
