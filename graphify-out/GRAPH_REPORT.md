@@ -1,26 +1,26 @@
 # Graph Report - PokeBooster  (2026-10-17)
 
 ## Corpus Check
-- 4 files · ~3,996 words
+- 4 files · ~5,022 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: .css 1)
 
 ## Summary
-- 48 nodes · 80 edges · 9 communities (8 shown, 1 thin omitted)
+- 52 nodes · 86 edges · 9 communities (8 shown, 1 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e4f6a9a1`
+- Built from commit: `3cf3ded3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- buy
+- art
 - app.js
-- openPack
+- buy
 - data.js
-- renderDex
+- cardHTML
 - renderPanel
 - scenes.js
 - f1
@@ -29,54 +29,54 @@
 1. `f1()` - 10 edges
 2. `renderPanel()` - 7 edges
 3. `openPack()` - 6 edges
-4. `renderDex()` - 6 edges
-5. `buy()` - 5 edges
-6. `cardHTML()` - 5 edges
+4. `cardHTML()` - 6 edges
+5. `renderDex()` - 6 edges
+6. `buy()` - 5 edges
 7. `art()` - 4 edges
 8. `poolOf()` - 4 edges
 9. `packHTML()` - 4 edges
 10. `render()` - 4 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `packHTML()` --calls--> `art()`  [EXTRACTED]
-  app.js → app.js  _Bridges community 4 → community 0_
-- `renderDex()` --calls--> `poolOf()`  [EXTRACTED]
-  app.js → app.js  _Bridges community 2 → community 4_
-- `renderPanel()` --calls--> `poolOf()`  [EXTRACTED]
-  app.js → app.js  _Bridges community 2 → community 5_
+- `renderDex()` --calls--> `pad()`  [EXTRACTED]
+  app.js → app.js  _Bridges community 4 → community 5_
+- `cardHTML()` --calls--> `art()`  [EXTRACTED]
+  app.js → app.js  _Bridges community 0 → community 4_
+- `renderDex()` --calls--> `art()`  [EXTRACTED]
+  app.js → app.js  _Bridges community 0 → community 5_
 - `buy()` --calls--> `openPack()`  [EXTRACTED]
+  app.js → app.js  _Bridges community 5 → community 2_
+- `buy()` --calls--> `showOpening()`  [EXTRACTED]
   app.js → app.js  _Bridges community 2 → community 0_
-- `render()` --calls--> `renderPanel()`  [EXTRACTED]
-  app.js → app.js  _Bridges community 5 → community 0_
 
 ## Import Cycles
 - None detected.
 
 ## Communities (9 total, 1 thin omitted)
 
-### Community 0 - "buy"
-Cohesion: 0.40
-Nodes (6): buy(), packHTML(), render(), reveal(), save(), showOpening()
+### Community 0 - "art"
+Cohesion: 0.50
+Nodes (4): art(), packHTML(), reveal(), showOpening()
 
 ### Community 1 - "app.js"
-Cohesion: 0.40
-Nodes (4): RAR, RKEYS, saved, state
+Cohesion: 0.33
+Nodes (5): faPick, RAR, RKEYS, saved, state
 
-### Community 2 - "openPack"
-Cohesion: 0.50
-Nodes (4): openPack(), pick(), poolOf(), roll()
+### Community 2 - "buy"
+Cohesion: 0.67
+Nodes (3): buy(), render(), save()
 
 ### Community 3 - "data.js"
 Cohesion: 0.40
 Nodes (4): BOOSTERS, POKEMON, RARITIES, TYPES
 
-### Community 4 - "renderDex"
-Cohesion: 0.83
-Nodes (4): art(), cardHTML(), pad(), renderDex()
+### Community 4 - "cardHTML"
+Cohesion: 0.50
+Nodes (4): cardHTML(), fanList(), fanOf(), pad()
 
 ### Community 5 - "renderPanel"
-Cohesion: 0.40
-Nodes (5): dist(), fmt(), renderPanel(), show(), tick()
+Cohesion: 0.24
+Nodes (10): dist(), fmt(), openPack(), pick(), poolOf(), renderDex(), renderPanel(), roll() (+2 more)
 
 ### Community 7 - "scenes.js"
 Cohesion: 0.22
@@ -93,8 +93,8 @@ Nodes (8): aurora(), birds(), cloud(), cloudBank(), f1(), pines(), rays(), ridge
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `f1()` connect `f1` to `scenes.js`?**
-  _High betweenness centrality (0.017) - this node is a cross-community bridge._
-- **Why does `renderPanel()` connect `renderPanel` to `buy`, `app.js`, `openPack`?**
-  _High betweenness centrality (0.007) - this node is a cross-community bridge._
-- **Why does `openPack()` connect `openPack` to `buy`, `app.js`, `renderPanel`?**
+  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **Why does `renderPanel()` connect `renderPanel` to `app.js`, `buy`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+- **Why does `openPack()` connect `renderPanel` to `app.js`, `buy`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._

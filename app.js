@@ -13,11 +13,6 @@ const pad = n => String(n).padStart(3, '0');
 const pick = a => a[Math.random() * a.length | 0];
 const art = (p, shiny) =>
   `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${shiny ? 'shiny/' : ''}${p.id}.png`;
-// Fanarts : fanart.js liste plusieurs candidats par Pokémon ; le choix de chacun est retenu dans le navigateur.
-let faPick = {};
-try { faPick = JSON.parse(localStorage.getItem('boosterdex-fa')) || {}; } catch {}
-const fanList = p => [].concat(window.FANART?.[p.id] || []);
-const fanOf = p => { const l = fanList(p); return l[(faPick[p.id] || 0) % l.length]; };
 const poolOf = b => POKEMON.filter(p => !b.types || p.types.some(t => b.types.includes(t)));
 
 // Probabilité de chaque rareté pour une carte ; une rareté absente du booster cède son poids à la suivante en dessous.
@@ -83,7 +78,7 @@ function packHTML(b) {
 }
 // Carte « full art » : décor du type, Pokémon au centre, nom en bas. Un fanart déclaré dans fanart.js remplace décor + artwork.
 function cardHTML(p, shiny = false, isNew = false) {
-  const R = RAR[p.r], fan = fanOf(p);
+  const R = RAR[p.r], fan = window.FANART?.[p.id];
   const sc = fan ? null : scene(p.types[0], p.id);
   const inner = fan ? `<img class="full" src="${fan}" alt="${p.name}" loading="lazy" onerror="this.onerror=null;this.className='poke';this.src='${art(p, shiny)}'">`
     : `${sc.back}<img class="poke" src="${art(p, shiny)}" alt="${p.name}" loading="lazy">${sc.front}`;
@@ -196,17 +191,8 @@ $('#dexGrid').onclick = e => {
   if (!c) return;
   const o = $('#overlay');
   o.hidden = false;
-  const p = POKEMON[c.dataset.id - 1], n = fanList(p).length;
-  const draw = () => o.innerHTML = `<div class="zoom">${cardHTML(p, c.dataset.s === '1')}
-    ${n > 1 ? `<button class="btn ghost" id="nextFa">🎨 Autre fanart (${(faPick[p.id] || 0) % n + 1}/${n})</button>` : ''}</div>`;
-  draw();
-  o.onclick = ev => {
-    if (ev.target.id === 'nextFa') {
-      faPick[p.id] = (faPick[p.id] || 0) + 1;
-      try { localStorage.setItem('boosterdex-fa', JSON.stringify(faPick)); } catch {}
-      draw(); renderDex();
-    } else if (!ev.target.closest('.zoom')) { o.hidden = true; o.innerHTML = ''; o.onclick = null; }
-  };
+  o.innerHTML = `<div class="zoom">${cardHTML(POKEMON[c.dataset.id - 1], c.dataset.s === '1')}</div>`;
+  o.onclick = ev => { if (!ev.target.closest('.zoom')) { o.hidden = true; o.innerHTML = ''; o.onclick = null; } };
 };
 
 // Inclinaison 3D + reflet holo qui suit la souris
