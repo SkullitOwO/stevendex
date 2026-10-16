@@ -1,5 +1,5 @@
 const $ = s => document.querySelector(s);
-const SAVE = 'boosterdex-v1', FREE_MS = 5 * 60e3, PITY_M = 150, PITY_S = 10, SHINY = 0.02;
+const SAVE = 'boosterdex-v1', FREE_MS = 5 * 60e3, PITY_M = 150, PITY_S = 15, SHINY = 0.012;
 const RAR = Object.fromEntries(RARITIES.map(r => [r.key, r]));
 const RKEYS = RARITIES.map(r => r.key);
 
@@ -150,6 +150,24 @@ function burst(host, color, n) {
     setTimeout(() => s.remove(), 1800);
   }
 }
+const epicOf = c => c.shiny || 'LM'.includes(c.p.r);
+function implode(host, color) {
+  const s = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 200 + Math.random() * 140;
+  s.className = 'suck';
+  s.style.cssText = `--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d}px;--c:${color}`;
+  host.appendChild(s);
+  setTimeout(() => s.remove(), 650);
+}
+function confetti(o, c) {
+  const pal = c.shiny ? ['#ffd76a', '#fff3b0', '#ffb300', '#fff'] : c.p.r === 'M' ? ['#ff6b6b', '#ffd93b', '#6bff95', '#5ac8ff', '#b46bff'] : ['#f5c518', '#fff1b0', '#fff', '#ffcb05'];
+  for (let i = 0; i < 110; i++) {
+    const k = document.createElement('i');
+    k.className = 'conf';
+    k.style.cssText = `left:${Math.random() * 100}vw;--c:${pal[i % pal.length]};--x:${(Math.random() - .5) * 240}px;--r:${Math.random() * 1080 - 540}deg;--t:${2.2 + Math.random() * 1.6}s;--d:${Math.random() * .7}s;width:${6 + Math.random() * 8}px`;
+    o.appendChild(k);
+    setTimeout(() => k.remove(), 4800);
+  }
+}
 const LABEL = c => c.shiny ? '✦ Carte dorée ✦' : c.p.r === 'M' ? '👑 Mythique !' : '★ Légendaire !';
 const rcOf = c => c.shiny ? '#ffd76a' : RAR[c.p.r].color;
 
@@ -226,6 +244,7 @@ function deck(b, res, skipped) {
   const layout = () => flips.forEach((f, k) => {
     const d = k - i;
     if (d >= 0) f.style.transform = `translate(${d * 5}px, ${d * -5}px) rotate(${d * 2}deg)`;
+    f.classList.toggle('tease', d === 0 && epicOf(cards[k]) && !f.classList.contains('open'));
   });
   layout();
   cards.forEach((_, k) => setTimeout(sfx.flip, 200 + k * 90));
@@ -235,23 +254,31 @@ function deck(b, res, skipped) {
     if (!f) return;
     busy = true;
     if (!f.classList.contains('open')) {
-      if (c.shiny || 'LM'.includes(c.p.r)) {
-        $('#hint').textContent = '…';
+      if (epicOf(c)) {
+        const col = rcOf(c);
+        $('#hint').textContent = '';
         o.classList.add('dim');
+        deckEl.style.setProperty('--rc', col);
+        f.classList.remove('tease');
         f.classList.add('charging');
         sfx.charge();
-        await wait(1300);
+        const suck = setInterval(() => implode(deckEl, col), 60);
+        await wait(1500);
+        clearInterval(suck);
         f.classList.remove('charging');
         o.insertAdjacentHTML('beforeend', '<div class="flash"></div>');
-        setTimeout(() => o.querySelector('.flash')?.remove(), 700);
+        setTimeout(() => o.querySelector('.flash')?.remove(), 900);
+        deckEl.insertAdjacentHTML('beforeend', '<div class="shock"></div><div class="shock s2"></div>');
+        setTimeout(() => deckEl.querySelectorAll('.shock').forEach(s => s.remove()), 1300);
         f.classList.add('open', 'epic');
         deckEl.classList.add('show-rays');
-        deckEl.style.setProperty('--rc', rcOf(c));
-        o.classList.add('quake');
+        o.classList.add('quake', c.shiny ? 'gold' : c.p.r === 'M' ? 'myth' : 'leg');
         sfx.epic();
-        burst(deckEl, rcOf(c), 60);
-        deckEl.insertAdjacentHTML('beforeend', `<div class="banner" style="--rc:${rcOf(c)}">${LABEL(c)}</div>`);
-        await wait(600);
+        burst(deckEl, col, 90);
+        confetti(o, c);
+        deckEl.insertAdjacentHTML('beforeend', `<div class="banner" style="--rc:${col}">${[...LABEL(c)].map((ch, n) => `<span style="--i:${n}">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('')}</div>
+          <div class="reveal-name" style="--rc:${col}">${c.p.name}<small>${RAR[c.p.r].name}${c.shiny ? ' · dorée' : ''}</small></div>`);
+        await wait(1100);
         o.classList.remove('quake');
       } else {
         f.classList.add('open');
@@ -262,9 +289,9 @@ function deck(b, res, skipped) {
       }
       $('#hint').textContent = i < cards.length - 1 ? 'Touche encore pour la carte suivante' : 'Touche pour voir ton booster';
     } else {
-      o.classList.remove('dim');
+      o.classList.remove('dim', 'gold', 'myth', 'leg');
       deckEl.classList.remove('show-rays');
-      deckEl.querySelector('.banner')?.remove();
+      deckEl.querySelectorAll('.banner, .reveal-name').forEach(x => x.remove());
       f.classList.add('gone');
       sfx.whoosh();
       $('#pile').insertAdjacentHTML('beforeend', `<div class="mini">${cardHTML(c.p, c.shiny)}</div>`);
