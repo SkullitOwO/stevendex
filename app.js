@@ -71,14 +71,14 @@ function openPack(b) {
 
 /* ---------- Rendus ---------- */
 function packHTML(b) {
-  const sc = scene(b.scene, b.mascot);
   return `<div class="pack" style="--c:${b.color}"><div class="pack-in">
-    <div class="pk-win" style="background:${sc.bg}">${sc.back}<img class="mascot" src="${art(POKEMON[b.mascot - 1])}" alt="">${sc.front}</div>
+    <div class="pk-bg"></div>
+    <img class="pk-mon" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${b.mascot}.png" alt="">
+    <div class="pk-low"></div>
     <div class="crimp"></div><div class="crimp bot"></div>
-    <div class="pk-logo">Booster<b>dex</b></div>
-    <div class="pk-seal"><b>5</b>cartes</div>
-    <div class="pk-name"><span class="pk-ico">${b.icon}</span><b>${b.name}</b><i>${b.sub}</i></div>
-    <div class="pk-sheen"></div>
+    <div class="pk-top">Boosterdex</div>
+    <div class="pk-name"><b>${b.name}</b><i>${b.sub}</i></div>
+    <div class="pk-wrap"></div><div class="pk-sheen"></div>
   </div></div>`;
 }
 // Carte « full art » : fanart (ou décor du type + artwork officiel), nom en bas.
