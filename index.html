@@ -15,6 +15,7 @@
     <button data-view="shop" class="on">Boutique</button>
     <button data-view="book">Classeur <span id="bookCount"></span></button>
     <button data-view="market">Marché <span id="dupCount"></span></button>
+    <button data-view="play">Jouer</button>
   </nav>
   <button class="mute" id="mute" aria-label="Couper le son">🔊</button>
   <div class="coins" title="Pokédollars"><i class="coin"></i><span id="coins">0</span></div>
@@ -57,6 +58,28 @@
     </div>
     <div id="mkGrid" class="mk-grid"></div>
   </section>
+  <section id="play" class="view">
+    <div class="shop-head">
+      <h1>Jouer avec tes amis</h1>
+      <p>Crée un salon et envoie le code, ou rejoins celui d'un ami.</p>
+    </div>
+    <label class="pl-name">Ton pseudo <input id="plName" maxlength="16" autocomplete="off"></label>
+    <div class="modes">
+      <div class="mode" data-mode="duel" style="--c:#f5a518">
+        <div class="mode-ico">🎴</div>
+        <h2>Duel de boosters</h2>
+        <p>Vous ouvrez le même booster. Le plus gros score de rareté rafle la mise, chacun garde ses cartes.</p>
+        <div class="mode-btns"><button class="btn" data-act="host">Créer un salon</button><button class="btn ghost" data-act="bot">S'entraîner contre l'ordi</button></div>
+      </div>
+      <div class="mode" data-mode="battle" style="--c:#e3350d">
+        <div class="mode-ico">⚔️</div>
+        <h2>Combat de cartes</h2>
+        <p>Choisis 3 cartes de ton classeur. Attaque, coup spécial, protection et types : le dernier debout gagne.</p>
+        <div class="mode-btns"><button class="btn" data-act="host">Créer un salon</button></div>
+      </div>
+    </div>
+    <div class="join"><input id="joinCode" placeholder="CODE" maxlength="5" autocomplete="off"><button class="btn" id="joinBtn">Rejoindre</button></div>
+  </section>
 </main>
 <div id="overlay" class="overlay" hidden></div>
 <script src="data.js"></script>
@@ -64,5 +87,7 @@
 <script src="fanart.js"></script>
 <script src="sfx.js"></script>
 <script src="app.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="play.js"></script>
 </body>
 </html>

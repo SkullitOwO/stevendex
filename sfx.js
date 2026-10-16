@@ -52,5 +52,8 @@ const sfx = (() => {
     coin: play(() => { tone(988, 0, .07, { vol: .06, type: 'square' }); tone(1319, .06, .28, { vol: .06, type: 'square' }); }),
     page: play(() => noise(0, .38, { vol: .12, f: 1600, to: 600, q: .6 })),
     nope: play(() => tone(170, 0, .2, { vol: .1, type: 'square', to: 110 })),
+    hit: play(spe => { noise(0, .18, { vol: spe ? .4 : .28, f: 900, to: 200, q: .8 }); tone(spe ? 90 : 140, 0, .2, { vol: .2, to: 50 }); }),
+    win: play(() => [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .12, i === 3 ? .6 : .18, { vol: .12, type: 'triangle' }))),
+    lose: play(() => [392, 330, 262].forEach((f, i) => tone(f, i * .18, .3, { vol: .1, type: 'triangle' }))),
   };
 })();
