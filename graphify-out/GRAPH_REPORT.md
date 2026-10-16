@@ -1,17 +1,17 @@
 # Graph Report - PokeBooster  (2026-10-17)
 
 ## Corpus Check
-- 6 files · ~9,656 words
+- 6 files · ~9,706 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: .css 1)
 
 ## Summary
-- 115 nodes · 256 edges · 14 communities (12 shown, 2 thin omitted)
+- 116 nodes · 257 edges · 14 communities (12 shown, 2 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1c98b656`
+- Built from commit: `1cc21e2e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -60,7 +60,7 @@
 ## Communities (14 total, 2 thin omitted)
 
 ### Community 0 - "play.js"
-Cohesion: 0.15
+Cohesion: 0.14
 Nodes (16): BASE, botPack(), G, inbox, mkSide(), net, netHost(), netJoin() (+8 more)
 
 ### Community 1 - "joinRoom"
@@ -116,6 +116,6 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `joinRoom()` connect `joinRoom` to `play.js`, `duelSetup`?**
   _High betweenness centrality (0.002) - this node is a cross-community bridge._
 - **Should `play.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.14705882352941177 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13725490196078433 - nodes in this community are weakly interconnected._
 - **Why does `deck()` connect `deck` to `cardHTML`, `openPack`?**
   _High betweenness centrality (0.002) - this node is a cross-community bridge._

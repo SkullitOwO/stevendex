@@ -76,7 +76,7 @@ function packHTML(b) {
     <img class="pk-mon" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${b.mascot}.png" alt="">
     <div class="pk-low"></div>
     <div class="crimp"></div><div class="crimp bot"></div>
-    <div class="pk-top">Boosterdex</div>
+    <div class="pk-top">StevenDex</div>
     <div class="pk-name"><b>${b.name}</b><i>${b.sub}</i></div>
     <div class="pk-wrap"></div><div class="pk-sheen"></div>
   </div></div>`;
@@ -94,7 +94,7 @@ function cardHTML(p, shiny = false, isNew = false) {
       <div class="label"><b>${p.name}</b><span>N° ${pad(p.id)}</span></div>
     </div>${isNew ? '<div class="new">Nouveau !</div>' : ''}<div class="holo"></div></div>`;
 }
-const backHTML = () => '<div class="back"><div class="back-in"><div class="back-ball"></div><div class="back-txt">Boosterdex</div></div></div>';
+const backHTML = () => '<div class="back"><div class="back-in"><div class="back-ball"></div><div class="back-txt">StevenDex</div></div></div>';
 
 /* ---------- Boutique ---------- */
 function renderShop() {
@@ -159,23 +159,37 @@ function openFlow(b, res) {
   o.innerHTML = `<button class="skip" id="skip">Tout révéler ⏭</button>
     <div class="op-stage">
       <div class="op-pack" id="opPack"><div class="op-light"></div>
-        <div class="tear-top">${packHTML(b)}</div><div class="tear-body">${packHTML(b)}</div>
+        <div class="tear-rest">${packHTML(b)}</div><div class="tear-body">${packHTML(b)}</div><div class="tear-top">${packHTML(b)}</div>
         <div class="tear-line"><i id="cutFill"></i><span id="scis">✂</span></div></div>
       <p class="hint" id="hint">Glisse le long des pointillés pour déchirer</p>
     </div>`;
   sfx.whoosh();
   let done = false;
   $('#skip').onclick = () => { done = true; summary(b, res); };
-  const pk = $('#opPack'), fill = $('#cutFill'), scis = $('#scis');
+  const pk = $('#opPack'), fill = $('#cutFill'), scis = $('#scis'), flap = pk.querySelector('.tear-top'), rest = pk.querySelector('.tear-rest');
+  const J = Array.from({ length: 41 }, () => Math.random()); // bord déchiré irrégulier
   let prog = 0, dragging = false, lastTick = 0, x0 = 0;
+  // Le rabat déjà découpé (de 0 au doigt) se soulève en pivotant autour du doigt ; le reste du haut reste collé.
+  const drawTear = () => {
+    const p = prog * 100;
+    let poly = `0% 0%, ${p}% 0%, ${p}% 9%`;
+    for (let i = Math.floor(p / 2.5); i >= 0; i--) poly += `, ${i * 2.5}% ${(9 + (J[i] - .5) * 2.4).toFixed(2)}%`;
+    flap.style.clipPath = `polygon(${poly})`;
+    flap.style.transformOrigin = `${p}% 9%`;
+    flap.style.transform = `translateY(${-prog * 6}px) rotate(${-Math.min(14, prog * 18)}deg)`;
+    rest.style.clipPath = `polygon(${p}% 0%, 100% 0%, 100% 9%, ${p}% 9%)`;
+    fill.style.width = p + '%';
+    scis.style.left = `calc(${p}% - 11px)`;
+  };
   const setProg = v => {
     prog = Math.max(prog, Math.min(1, v));
-    fill.style.width = prog * 100 + '%';
-    scis.style.left = `calc(${prog * 100}% - 11px)`;
+    drawTear();
     if (prog - lastTick > .07) { lastTick = prog; sfx.cut(); }
   };
+  drawTear();
   const tear = async () => {
     if (pk.classList.contains('torn')) return;
+    prog = 1; drawTear();
     pk.classList.add('torn');
     sfx.tear();
     $('#hint').textContent = '';
