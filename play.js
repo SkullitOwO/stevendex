@@ -406,12 +406,16 @@ function endBattle(losers) {
 }
 
 /* ---------- Onglet Jouer ---------- */
+const setAvatar = () => { $('#avatar').textContent = myName[0].toUpperCase(); $('#avatar').title = myName; };
 $('#plName').value = myName;
+setAvatar();
 $('#plName').onchange = e => {
   myName = e.target.value.trim().slice(0, 16) || 'Dresseur';
   e.target.value = myName;
   try { localStorage.setItem('boosterdex-name', myName); } catch {}
+  setAvatar();
 };
+$('#avatar').onclick = () => { show('play'); $('#plName').focus(); };
 $('#play').onclick = e => {
   const b = e.target.closest('[data-act]');
   if (!b) return;

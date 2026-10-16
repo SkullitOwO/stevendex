@@ -10,15 +10,20 @@
 </head>
 <body>
 <header class="top">
-  <div class="logo">Booster<b>dex</b></div>
+  <div class="logo"><span class="logo-ico"></span>Boosterdex</div>
   <nav class="tabs">
-    <button data-view="shop" class="on">Boutique</button>
-    <button data-view="book">Classeur <span id="bookCount"></span></button>
-    <button data-view="market">Marché <span id="dupCount"></span></button>
+    <button data-view="shop" class="on">Boosters</button>
+    <button data-view="book">Classeur</button>
+    <button data-view="market">Marché <span class="dot" id="dupCount"></span></button>
     <button data-view="play">Jouer</button>
   </nav>
-  <button class="mute" id="mute" aria-label="Couper le son">🔊</button>
-  <div class="coins" title="Pokédollars"><i class="coin"></i><span id="coins">0</span></div>
+  <div class="hud">
+    <span class="hud-dex" title="Pokémon dans ton classeur"><i class="hud-bar"><b id="hudBar"></b></i><span id="bookCount"></span></span>
+    <span class="hud-sep"></span>
+    <span title="Pokédollars"><i class="coin"></i><span id="coins">0</span></span>
+  </div>
+  <button class="round" id="mute" aria-label="Couper le son">🔊</button>
+  <div class="avatar" id="avatar" title="Ton pseudo">D</div>
 </header>
 <main>
   <section id="shop" class="view on">

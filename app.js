@@ -124,6 +124,7 @@ function renderTop() {
   $('#coins').textContent = state.coins.toLocaleString('fr-FR');
   const got = POKEMON.filter(owns).length, dups = dupKeys().reduce((a, k) => a + state.owned[k] - 1, 0);
   $('#bookCount').textContent = `${got}/${POKEMON.length}`;
+  $('#hudBar').style.width = got / POKEMON.length * 100 + '%';
   $('#dupCount').textContent = dups ? dups : '';
   $('#bookTxt').textContent = `${got} / ${POKEMON.length} Pokémon`;
   $('#bookBar').style.width = got / POKEMON.length * 100 + '%';
