@@ -385,6 +385,7 @@ function turn(dir) {
   from.innerHTML = pageHTML(dir > 0 ? np + 1 : np);
   bd.classList.add(dir > 0 ? 'turn-f' : 'turn-b');
   bd.appendChild(leaf);
+  setTimeout(() => leaf.classList.add('half'), 400); // à mi-course la feuille est de profil : on montre l'autre face, aucune transparence possible
   setTimeout(() => {
     to.replaceChildren(leaf.querySelector('.backf').firstElementChild);
     leaf.remove();
