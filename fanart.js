@@ -23,7 +23,7 @@ window.FANART = Object.fromEntries(Object.entries({
   10: "67f44cd43a9a611ab5f4f76ba60d087e.jpg",
   11: "bcf5ef9bf2ecd82f9397db4af717606e.jpg",
   12: "bfa628919cdaf17fd3d991035f199a9c.jpg",
-  13: "af2bd57d9d27bb00a09804bf097a004a.jpg",
+  13: "9c7d6007e84785d93841cb0dff918281.jpg",
   14: "34d85ecbed15934eb9969316bc985259.jpg",
   15: "f4839d1df7036bc1694ab8d736498d9a.jpg",
   16: "5d081223163eeeab9e94844c5a6bcf1b.jpg",
