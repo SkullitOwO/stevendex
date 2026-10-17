@@ -142,7 +142,7 @@ async function newTrade() {
   };
   o.hidden = false; o.className = 'overlay zoomed'; o.onclick = null;
   draw();
-  o.oncontextmenu = e => bump(e, -1) && e.preventDefault();
+  o.oncontextmenu = e => { if (bump(e, -1)) e.preventDefault(); };
   o.onclick = async e => {
     if (bump(e, 1)) return;
     if (e.target.id === 'trClose' || e.target === o) { o.oncontextmenu = null; return closeOverlay(); }
@@ -155,7 +155,7 @@ async function newTrade() {
   };
 }
 $('#trNew').onclick = newTrade;
-$('#trTo').onkeydown = e => e.key === 'Enter' && newTrade();
+$('#trTo').onkeydown = e => { if (e.key === 'Enter') newTrade(); };
 
 // Pastille « Amis » quand une offre t'attend (vérifiée toutes les 30 s)
 function pollTrades() {

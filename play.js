@@ -584,4 +584,4 @@ $('#joinBtn').onclick = () => {
   sfx.select();
   joinRoom(code);
 };
-$('#joinCode').onkeydown = e => e.key === 'Enter' && $('#joinBtn').click();
+$('#joinCode').onkeydown = e => { if (e.key === 'Enter') $('#joinBtn').click(); }; // un « return false » annulerait la frappe
