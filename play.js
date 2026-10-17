@@ -203,97 +203,147 @@ function mult(atkId, defId) {
 }
 console.assert(mult(6, 1) === 2 && mult(1, 6) === .5 && mult(25, 7) === 2, 'table des types');
 
-// Passif de chaque carte, selon son type principal
+// Passifs mécaniques : chaque carte en a un, tiré d'une liste cohérente avec son type (toujours le même pour un Pokémon donné)
 const PASSIVES = {
-  feu: ['🔥', 'Brûlure', '25 % de chances de brûler la cible (−6 PV par tour, 3 tours).'],
-  eau: ['💧', 'Régénération', 'Récupère 3 % de ses PV max à chaque fin de tour.'],
-  plante: ['🍃', 'Photosynthèse', 'Se soigne de 12 % de ses PV max quand il se protège.'],
-  electrik: ['⚡', 'Paralysie', '20 % de chances que l\'adversaire perde son prochain tour.'],
-  glace: ['❄️', 'Gel', '15 % de chances que l\'adversaire perde son prochain tour.'],
+  first: ['⚡', 'Ouverture', 'Sa première attaque inflige ×2.'],
+  double: ['⚔️', 'Furie', 'Frappe deux fois (×0,85 chacune), puis se repose le tour suivant.'],
+  quick: ['💨', 'Vif', 'Agit toujours en premier.'],
+  rage: ['😤', 'Rage', '+12 % d\'attaque à chaque coup reçu (jusqu\'à +48 %).'],
+  vamp: ['🩸', 'Vampirisme', 'Récupère 35 % des dégâts qu\'il inflige.'],
+  thorns: ['🌵', 'Épines', 'Renvoie 25 % des dégâts reçus à l\'attaquant.'],
+  sturdy: ['🪨', 'Dernier souffle', 'Survit une fois à un coup fatal avec 1 PV.'],
+  focus: ['🎯', 'Concentration', 'Après un Abri, sa prochaine attaque inflige ×1,6.'],
+  pierce: ['🗡️', 'Brise-garde', 'Passe en partie à travers l\'Abri (35 %) et la Barrière (75 %) adverses.'],
+  crit: ['💥', 'Coup critique', '25 % de chances d\'infliger le double de dégâts.'],
+  dodge: ['🪶', 'Esquive', '20 % de chances d\'esquiver une attaque.'],
+  regen: ['💧', 'Régénération', 'Récupère 4 % de ses PV max à chaque fin de tour.'],
+  burn: ['🔥', 'Brûlure', '25 % de chances de brûler la cible (−6 PV par tour, 3 tours).'],
   poison: ['☠️', 'Venin', 'Chaque coup empoisonne : −4 PV par dose et par tour (3 doses max).'],
-  combat: ['👊', 'Riposte', 'Quand il se protège, renvoie 50 % des dégâts reçus.'],
-  roche: ['🪨', 'Solide', 'Survit une fois à un coup fatal avec 1 PV.'],
-  sol: ['⛰️', 'Carapace', 'Subit 15 % de dégâts en moins.'],
-  vol: ['🪶', 'Esquive', '15 % de chances d\'esquiver une attaque.'],
-  psy: ['🔮', 'Prescience', 'Son coup spécial traverse la protection.'],
-  insecte: ['🐛', 'Essaim', '+20 % de dégâts si un allié est K.O.'],
-  spectre: ['👻', 'Hantise', 'En tombant K.O., inflige 20 dégâts à son adversaire.'],
-  dragon: ['🐉', 'Fureur', '+25 % de dégâts sous la moitié de ses PV.'],
-  fee: ['✨', 'Charme', 'Son adversaire inflige 20 % de dégâts en moins.'],
-  acier: ['⚙️', 'Blindage', 'Immunisé contre brûlure, poison, paralysie et gel.'],
-  normal: ['⭐', 'Adaptation', '+5 % d\'attaque par tour passé au combat (max +30 %).'],
+  stun: ['💫', 'Paralysie', '20 % de chances que l\'adversaire perde son prochain tour.'],
+  entry: ['🌟', 'Entrée fracassante', 'En entrant en jeu, inflige 25 dégâts à l\'adversaire.'],
+  haunt: ['👻', 'Hantise', 'En tombant K.O., inflige 15 dégâts à son adversaire.'],
+  energy: ['🔋', 'Catalyseur', 'Ton équipe gagne +1 énergie de sort en plus à chaque tour.'],
 };
-// Type du passif : le type principal, sauf un Normal à double type qui prend son second type (ex. Roucool Normal/Vol → Esquive)
+const POOLS = {
+  feu: ['burn', 'first', 'rage'], eau: ['regen', 'vamp', 'dodge'], plante: ['vamp', 'thorns', 'regen'], electrik: ['stun', 'quick', 'energy'],
+  glace: ['stun', 'sturdy', 'crit'], combat: ['double', 'rage', 'focus'], poison: ['poison', 'thorns', 'vamp'], sol: ['sturdy', 'rage', 'entry'],
+  roche: ['sturdy', 'thorns', 'entry'], vol: ['dodge', 'quick', 'first'], psy: ['energy', 'focus', 'pierce'], insecte: ['double', 'poison', 'quick'],
+  spectre: ['haunt', 'pierce', 'dodge'], dragon: ['rage', 'first', 'double'], fee: ['regen', 'energy', 'dodge'], acier: ['sturdy', 'thorns', 'focus'],
+  normal: ['crit', 'quick', 'first'],
+};
+// Sorts : coût en énergie (2 au départ, +1 par tour, 6 max). Un sort par tour, lancé en plus de l'action.
+const SPELLS = {
+  boost: ['💪', 'Renforcement', 2, '+40 % d\'attaque pendant 2 tours'],
+  heal: ['💚', 'Soin', 3, 'Rend 35 % des PV max'],
+  barrier: ['🔰', 'Barrière', 2, 'Divise par deux les dégâts reçus ce tour'],
+  haste: ['💨', 'Hâte', 1, 'Agis en premier ce tour'],
+  weaken: ['🌀', 'Affaiblir', 2, 'L\'adversaire perd 30 % d\'attaque pendant 2 tours'],
+  cleanse: ['✨', 'Purification', 1, 'Retire brûlure, poison et paralysie'],
+};
+const EN_MAX = 6;
+// Type de référence : le type principal, sauf un Normal à double type qui prend son second type (ex. Roucool Normal/Vol)
 const ptypeOf = p => (p.types[0] === 'normal' && p.types[1]) || p.types[0];
-const ptype = c => ptypeOf(POKEMON[c.id - 1]);
-const passiveOf = c => PASSIVES[ptype(c)];
-const mkSide = team => ({ team: team.map(([id, s]) => { const st = stats(POKEMON[id - 1], s === 2 ? 'anim' : !!s); return { id, s, hp: st.hp, max: st.hp, atk: st.atk, spd: st.spd, sp: true, burn: 0, psn: 0, stun: false, solid: false, turns: 0 }; }), act: 0, lastG: false });
+const pasIdOf = p => { const pool = POOLS[ptypeOf(p)]; return pool[p.id % pool.length]; };
+const passiveFor = p => PASSIVES[pasIdOf(p)];
+const pas = c => pasIdOf(POKEMON[c.id - 1]);
+const passiveOf = c => PASSIVES[pas(c)];
+const mkSide = team => ({ team: team.map(([id, s]) => { const st = stats(POKEMON[id - 1], s === 2 ? 'anim' : !!s); return { id, s, hp: st.hp, max: st.hp, atk: st.atk, spd: st.spd, sp: true, burn: 0, psn: 0, stun: false, solid: false, used: false, rest: false, rage: 0, focus: false, boost: 0, weak: 0 }; }), act: 0, lastG: false, en: 2 });
 
-// Un tour : changements, protections, attaques par ordre de vitesse, puis effets de fin de tour. L'hôte fait foi.
-// Événements : hit (attaque), fx (effet de passif : d = variation de PV de la carte active du camp k), etc.
+// Un tour : changements, sorts, protections, attaques (priorité puis vitesse), effets de fin de tour. L'hôte fait foi.
+// Événements : swp/next (entrée en jeu), spell, grd, hit (attaque), fx (effet : d = variation de PV de la carte active du camp k), lose
 function resolve(S, acts, rnd = Math.random) {
-  const ev = [], guard = {}, other = k => (k === 'A' ? 'B' : 'A'), active = k => S[k].team[S[k].act];
-  const hurt = (k, d, txt) => { const c = active(k), before = c.hp; c.hp = Math.max(0, Math.min(c.max, c.hp + d)); ev.push({ k, e: 'fx', d: c.hp - before, txt, ko: before > 0 && c.hp === 0 }); };
+  const ev = [], guard = {}, barrier = {}, haste = {}, other = k => (k === 'A' ? 'B' : 'A'), active = k => S[k].team[S[k].act];
+  const hurt = (k, d, txt, nonLethal) => {
+    const c = active(k), before = c.hp;
+    c.hp = Math.max(nonLethal ? Math.min(1, before) : 0, Math.min(c.max, c.hp + d));
+    ev.push({ k, e: 'fx', d: c.hp - before, txt, ko: before > 0 && c.hp === 0 });
+  };
+  const enter = k => { if (pas(active(k)) === 'entry' && active(other(k)).hp > 0) hurt(other(k), -25, 'Entrée fracassante', true); };
   for (const k of ['A', 'B']) {
     const s = S[k], a = acts[k];
-    if (a.a === 'swp' && a.to !== s.act && s.team[a.to]?.hp > 0) { s.act = a.to; ev.push({ k, e: 'swp', to: a.to }); }
+    if (a.a === 'swp' && a.to !== s.act && s.team[a.to]?.hp > 0) { s.act = a.to; ev.push({ k, e: 'swp', to: a.to }); enter(k); }
+  }
+  for (const k of ['A', 'B']) {
+    const s = S[k], sp = SPELLS[acts[k].sp], c = active(k);
+    if (!sp || s.en < sp[2]) continue;
+    s.en -= sp[2];
+    const id = acts[k].sp;
+    if (id === 'heal') { hurt(k, Math.round(c.max * .35), 'Soin'); ev[ev.length - 1].spell = id; continue; }
+    if (id === 'boost') c.boost = 2;
+    if (id === 'weaken') active(other(k)).weak = 2;
+    if (id === 'barrier') barrier[k] = true;
+    if (id === 'haste') haste[k] = true;
+    if (id === 'cleanse') Object.assign(c, { burn: 0, psn: 0, stun: false });
+    ev.push({ k, e: 'spell', sp: id });
   }
   for (const k of ['A', 'B']) {
     const s = S[k];
     guard[k] = acts[k].a === 'grd' && !s.lastG;
     s.lastG = guard[k];
-    if (guard[k]) {
-      ev.push({ k, e: 'grd' });
-      const c = active(k);
-      if (ptype(c) === 'plante') hurt(k, Math.round(c.max * .12), 'Photosynthèse');
-    }
+    if (guard[k]) { ev.push({ k, e: 'grd' }); if (pas(active(k)) === 'focus') active(k).focus = true; }
   }
-  const order = ['A', 'B'].sort((x, y) => (active(y).spd - active(x).spd) || (rnd() - .5));
+  const prio = k => (haste[k] ? 2 : 0) + (pas(active(k)) === 'quick' ? 1 : 0);
+  const order = ['A', 'B'].sort((x, y) => (prio(y) - prio(x)) || (active(y).spd - active(x).spd) || (rnd() - .5));
   for (const k of order) {
-    const a = acts[k], o = other(k), me = active(k), him = active(o);
+    const a = acts[k], o = other(k), me = active(k);
     if (a.a !== 'atk' && a.a !== 'spe') continue;
-    if (me.hp <= 0 || him.hp <= 0) continue;
-    if (me.stun) { me.stun = false; ev.push({ k, e: 'fx', d: 0, txt: 'paralysé, il ne peut pas attaquer' }); continue; }
-    const spe = a.a === 'spe' && me.sp;
+    if (me.hp <= 0 || active(o).hp <= 0) continue;
+    if (me.rest) { me.rest = false; ev.push({ k, e: 'fx', d: 0, txt: 'se repose après sa Furie' }); continue; }
+    if (me.stun) { me.stun = false; ev.push({ k, e: 'fx', d: 0, txt: 'est paralysé et ne peut pas attaquer' }); continue; }
+    const spe = a.a === 'spe' && me.sp, hits = pas(me) === 'double' ? 2 : 1;
     if (spe) me.sp = false;
-    if (ptype(him) === 'vol' && rnd() < .15) { ev.push({ k, e: 'hit', dmg: 0, m: 1, spe, dodge: true }); continue; }
-    const m = mult(me.id, him.id), pierce = spe && ptype(me) === 'psy';
-    let f = m * (spe ? 1.8 : 1) * (.85 + rnd() * .15) * (guard[o] && !pierce ? .4 : 1);
-    if (ptype(me) === 'dragon' && me.hp < me.max / 2) f *= 1.25;
-    if (ptype(me) === 'insecte' && S[k].team.some(c => c.hp === 0)) f *= 1.2;
-    if (ptype(me) === 'normal') f *= 1 + Math.min(.3, me.turns * .05);
-    if (ptype(him) === 'fee') f *= .8;
-    if (ptype(him) === 'sol') f *= .85;
-    let dmg = Math.max(1, Math.round(me.atk * f)), solid = false;
-    if (dmg >= him.hp && ptype(him) === 'roche' && !him.solid && him.hp > 1) { dmg = him.hp - 1; him.solid = solid = true; }
-    him.hp = Math.max(0, him.hp - dmg);
-    // effets infligés par l'attaquant (le Blindage d'Acier les bloque)
-    let eff = '';
-    if (him.hp > 0 && ptype(him) !== 'acier') {
-      const t = ptype(me);
-      if (t === 'feu' && rnd() < .25) { him.burn = 3; eff = 'brûlé'; }
-      if (t === 'poison') { him.psn = Math.min(3, him.psn + 1); eff = `empoisonné (×${him.psn})`; }
-      if ((t === 'electrik' && rnd() < .2) || (t === 'glace' && rnd() < .15)) { him.stun = true; eff = t === 'glace' ? 'gelé' : 'paralysé'; }
+    for (let h = 0; h < hits; h++) {
+      const him = active(o);
+      if (him.hp <= 0 || me.hp <= 0) break;
+      if (pas(him) === 'dodge' && rnd() < .2) { ev.push({ k, e: 'hit', dmg: 0, m: 1, spe: spe && !h, dodge: true }); continue; }
+      const m = mult(me.id, him.id), pierce = pas(me) === 'pierce', tags = [];
+      if (guard[o] && !pierce) { ev.push({ k, e: 'hit', dmg: 0, m, spe: spe && !h, blocked: true }); continue; }
+      let f = m * (spe && !h ? 1.8 : 1) * (.85 + rnd() * .15) * (hits > 1 ? .85 : 1);
+      if (guard[o]) f *= .35; // seul Brise-garde arrive jusqu'ici à travers l'Abri
+      if (barrier[o]) f *= pierce ? .75 : .5;
+      if (pas(me) === 'first' && !me.used) { f *= 2; tags.push('<b>Ouverture</b>'); }
+      if (me.focus) { f *= 1.6; me.focus = false; tags.push('<b>Concentration</b>'); }
+      if (me.rage) f *= 1 + .12 * me.rage;
+      if (me.boost) f *= 1.4;
+      if (me.weak) f *= .7;
+      const crit = pas(me) === 'crit' && rnd() < .25;
+      if (crit) { f *= 2; tags.push('<b>coup critique</b>'); }
+      let dmg = Math.max(1, Math.round(me.atk * f)), solid = false;
+      if (dmg >= him.hp && pas(him) === 'sturdy' && !him.solid && him.hp > 1) { dmg = him.hp - 1; him.solid = solid = true; }
+      him.hp = Math.max(0, him.hp - dmg);
+      let eff = '';
+      if (him.hp > 0) {
+        const p = pas(me);
+        if (p === 'burn' && rnd() < .25) { him.burn = 3; eff = 'brûlé'; }
+        if (p === 'poison') { him.psn = Math.min(3, him.psn + 1); eff = `empoisonné (×${him.psn})`; }
+        if (p === 'stun' && rnd() < .2) { him.stun = true; eff = 'paralysé'; }
+        if (pas(him) === 'rage') him.rage = Math.min(4, him.rage + 1);
+      }
+      ev.push({ k, e: 'hit', dmg, m, spe: spe && !h, guarded: (guard[o] || barrier[o]) && !pierce, pierce: pierce && (guard[o] || barrier[o]), ko: him.hp === 0, solid, eff, tags, n: hits > 1 ? h + 1 : 0 });
+      if (pas(me) === 'vamp' && me.hp > 0 && me.hp < me.max) hurt(k, Math.max(1, Math.round(dmg * .35)), 'Vampirisme');
+      if (pas(him) === 'thorns' && me.hp > 0) hurt(k, -Math.max(1, Math.round(dmg * .25)), 'Épines');
+      if (him.hp === 0 && pas(him) === 'haunt' && me.hp > 0) hurt(k, -15, 'Hantise');
     }
-    ev.push({ k, e: 'hit', dmg, m, spe, guarded: !!guard[o] && !pierce, pierce, ko: him.hp === 0, solid, eff });
-    if (guard[o] && ptype(him) === 'combat' && him.hp > 0) hurt(k, -Math.max(1, Math.round(dmg * .5)), 'Riposte');
-    if (him.hp === 0 && ptype(him) === 'spectre' && me.hp > 0) hurt(k, -20, 'Hantise');
+    me.used = true;
+    if (hits > 1) me.rest = true;
   }
-  // fin de tour : brûlure, poison, régénération, adaptation
+  // fin de tour : brûlure, poison, régénération, durées des sorts, énergie
   for (const k of ['A', 'B']) {
-    const c = active(k);
-    if (c.hp <= 0) continue;
-    if (c.burn) { c.burn--; hurt(k, -6, 'Brûlure'); }
-    if (c.psn && c.hp > 0) hurt(k, -4 * c.psn, 'Venin');
-    if (ptype(c) === 'eau' && c.hp > 0 && c.hp < c.max) hurt(k, Math.max(1, Math.round(c.max * .03)), 'Régénération');
-    c.turns++;
+    const s = S[k], c = active(k);
+    if (c.hp > 0) {
+      if (c.burn) { c.burn--; hurt(k, -6, 'Brûlure'); }
+      if (c.psn && c.hp > 0) hurt(k, -4 * c.psn, 'Venin');
+      if (pas(c) === 'regen' && c.hp > 0 && c.hp < c.max) hurt(k, Math.max(1, Math.round(c.max * .04)), 'Régénération');
+    }
+    for (const x of s.team) { if (x.boost) x.boost--; if (x.weak) x.weak--; }
+    s.en = Math.min(EN_MAX, s.en + 1 + (s.team.some(x => x.hp > 0 && pas(x) === 'energy') ? 1 : 0));
   }
   for (const k of ['A', 'B']) {
     const s = S[k];
     if (active(k).hp > 0) continue;
     const nx = s.team.findIndex(c => c.hp > 0);
     ev.push(nx >= 0 ? { k, e: 'next', to: nx } : { k, e: 'lose' });
-    if (nx >= 0) s.act = nx;
+    if (nx >= 0) { s.act = nx; enter(k); }
   }
   return ev;
 }
@@ -303,10 +353,10 @@ function battleTeam() {
   const chosen = [];
   const draw = () => {
     const g = stage(`<div class="g-card wide"><h2>Choisis tes 3 cartes</h2>
-      <p>Combat ${vsTxt()} · <b>${chosen.length}/3</b> · l'ordre compte : la 1ʳᵉ entre en premier. Chaque carte a un passif selon son type (survole-la pour le détail).</p>
+      <p>Combat ${vsTxt()} · <b>${chosen.length}/3</b> · l'ordre compte : la 1ʳᵉ entre en premier. Chaque carte a un passif (survole-la pour le détail), et tu lanceras des sorts avec ton énergie.</p>
       <div class="team-grid">${keys.map(k => {
         const { p, shiny } = keyInfo(k), s = stats(p, shiny), n = chosen.indexOf(k);
-        const [pe, pn, pd] = PASSIVES[ptypeOf(p)];
+        const [pe, pn, pd] = passiveFor(p);
         return `<button class="tm${n >= 0 ? ' on' : ''}" data-k="${k}" title="${pn} : ${pd}">${cardHTML(p, shiny)}<span class="st">❤ ${s.hp} · ⚔ ${s.atk} · ⚡ ${s.spd}</span><span class="ps">${pe} ${pn}</span>${n >= 0 ? `<b class="tm-n">${n + 1}</b>` : ''}</button>`;
       }).join('')}</div>
       <button class="btn" id="go" ${chosen.length === 3 ? '' : 'disabled'}>Au combat !</button></div>`);
@@ -338,20 +388,23 @@ const pname = c => POKEMON[c.id - 1].name;
 function battle(S, me) {
   G.S = S; G.me = me;
   stage(`<div class="bt">
-    <div class="bt-row"><div class="bt-name">${G.oppName}</div><div class="bench" id="bOpp"></div><div class="fighter" id="fOpp"></div></div>
+    <div class="bt-row"><div class="bt-name" id="nOpp">${G.oppName}</div><div class="bench" id="bOpp"></div><div class="fighter" id="fOpp"></div></div>
     <div class="bt-log" id="log">Que le combat commence !</div>
-    <div class="bt-row me"><div class="fighter" id="fMe"></div><div class="bench" id="bMe"></div><div class="bt-name">${myName}</div></div>
+    <div class="bt-row me"><div class="fighter" id="fMe"></div><div class="bench" id="bMe"></div><div class="bt-name" id="nMe">${myName}</div></div>
     <div class="bt-actions" id="acts"></div></div>`);
   drawFighters(S);
   sfx.whoosh();
   askAction();
 }
 function drawFighters(S) {
-  for (const [k, f, b] of [[G.me, '#fMe', '#bMe'], [opp(), '#fOpp', '#bOpp']]) {
+  for (const [k, f, b, nm] of [[G.me, '#fMe', '#bMe', '#nMe'], [opp(), '#fOpp', '#bOpp', '#nOpp']]) {
     const s = S[k], c = s.team[s.act], r = c.hp / c.max;
+    $(nm).innerHTML = `${k === G.me ? myName : G.oppName}<br><span class="en">${'◆'.repeat(s.en)}${'◇'.repeat(EN_MAX - s.en)}</span>`;
+    const st = [c.burn && '🔥 brûlé', c.psn && `☠️ ×${c.psn}`, c.stun && '💫 paralysé', c.rest && '😮‍💨 au repos', c.boost && '💪 renforcé', c.weak && '🌀 affaibli',
+      c.focus && '🎯 concentré', c.rage && `😤 +${c.rage * 12} %`, pas(c) === 'first' && !c.used && '⚡ prêt'].filter(Boolean).join(' · ');
     $(f).innerHTML = `<div class="ft-card">${cardHTML(POKEMON[c.id - 1], c.s === 2 ? 'anim' : !!c.s)}</div>
       <div class="hpbox"><b>${pname(c)}</b><div class="hp"><i class="${r < .25 ? 'low' : r < .5 ? 'mid' : ''}" style="width:${r * 100}%"></i></div><span>${c.hp} / ${c.max} PV</span>
-        <small class="pas" title="${passiveOf(c)[2]}">${passiveOf(c)[0]} ${passiveOf(c)[1]}${c.burn ? ' · 🔥 brûlé' : ''}${c.psn ? ` · ☠️ ×${c.psn}` : ''}${c.stun ? ' · 💫 étourdi' : ''}</small></div>`;
+        <small class="pas" title="${passiveOf(c)[2]}">${passiveOf(c)[0]} ${passiveOf(c)[1]}</small>${st ? `<small class="sts">${st}</small>` : ''}</div>`;
     $(b).innerHTML = s.team.map((x, i) => `<div class="bn${i === s.act ? ' act' : ''}${x.hp ? '' : ' ko'}">${cardHTML(POKEMON[x.id - 1], x.s === 2 ? 'anim' : !!x.s)}</div>`).join('');
   }
 }
@@ -360,11 +413,14 @@ function askAction() {
   const eff = m > 1 ? ' · <em class="up">super efficace</em>' : m < 1 ? ' · <em class="down">peu efficace</em>' : '';
   const acts = $('#acts');
   if (!acts) return;
-  acts.innerHTML = `<button class="act" data-a="atk">⚔️ Attaque<small>~${Math.round(c.atk * m)} dégâts${eff}</small></button>
+  const spells = Object.entries(SPELLS).map(([id, [e, n, cost, d]]) => `<button class="spell${G.spell === id ? ' on' : ''}" data-sp="${id}" ${s.en < cost ? 'disabled' : ''} title="${d}">${e} ${n}<small>${'◆'.repeat(cost)}</small></button>`).join('');
+  acts.innerHTML = `<div class="spells"><span class="sp-lbl">Sort (optionnel) · ⚡ ${s.en}/${EN_MAX}</span>${spells}</div><button class="act" data-a="atk">⚔️ Attaque<small>~${Math.round(c.atk * m)} dégâts${eff}</small></button>
     <button class="act sp" data-a="spe" ${c.sp ? '' : 'disabled'}>💥 Coup spécial<small>${c.sp ? `~${Math.round(c.atk * m * 1.8)} dégâts · une fois` : 'déjà utilisé'}</small></button>
-    <button class="act" data-a="grd" ${s.lastG ? 'disabled' : ''}>🛡️ Protection<small>${s.lastG ? 'pas deux fois de suite' : '−60 % de dégâts ce tour'}</small></button>
+    <button class="act" data-a="grd" ${s.lastG ? 'disabled' : ''}>🛡️ Abri<small>${s.lastG ? 'pas deux fois de suite' : 'bloque toutes les attaques du tour'}</small></button>
     <button class="act" data-a="swp" ${s.team.some((x, i) => i !== s.act && x.hp > 0) ? '' : 'disabled'}>🔄 Changer<small>envoyer une autre carte</small></button>`;
   acts.onclick = e => {
+    const sp = e.target.closest('.spell');
+    if (sp && !sp.disabled) { G.spell = G.spell === sp.dataset.sp ? null : sp.dataset.sp; sfx.select(); return askAction(); }
     const b = e.target.closest('.act');
     if (!b || b.disabled) return;
     sfx.pop();
@@ -380,6 +436,8 @@ function askAction() {
   };
 }
 async function choose(a) {
+  if (G.spell) a.sp = G.spell;
+  G.spell = null;
   const acts = $('#acts');
   acts.onclick = null;
   acts.innerHTML = `<p class="wait">En attente de ${G.oppName}…</p>`;
@@ -403,10 +461,16 @@ async function playRound(ev, D) {
       sfx.whoosh();
       log(`${x.k === me ? 'Tu envoies' : `${G.oppName} envoie`} ${pname(D[x.k].team[x.to])} !`);
       await wait(850);
+    } else if (x.e === 'spell') {
+      const [e, n] = SPELLS[x.sp], f = $('#f' + side(x.k));
+      sfx.select();
+      burst(f, x.sp === 'weaken' ? '#b46bff' : '#7dd3fc', 18);
+      log(`${x.k === me ? 'Tu lances' : `${G.oppName} lance`} <b>${e} ${n}</b>${x.sp === 'weaken' ? ` sur ${pname(D[x.k === 'A' ? 'B' : 'A'].team[D[x.k === 'A' ? 'B' : 'A'].act])}${whose(x.k === 'A' ? 'B' : 'A')}` : ''} !`);
+      await wait(800);
     } else if (x.e === 'grd') {
       $('#f' + side(x.k)).classList.add('guard');
       sfx.pop();
-      log(`${pname(cur)}${whose(x.k)} se protège !`);
+      log(`${pname(cur)}${whose(x.k)} se met à l’<b>Abri</b> !`);
       await wait(700);
     } else if (x.e === 'fx') {
       const f = $('#f' + side(x.k));
@@ -424,6 +488,15 @@ async function playRound(ev, D) {
       f.classList.remove('hurt');
       f.querySelector('.dmg')?.remove();
       if (x.ko) { f.classList.add('ko'); sfx.nope(); log(`${pname(cur)}${whose(x.k)} est K.O. !`); await wait(950); f.classList.remove('ko'); }
+    } else if (x.e === 'hit' && x.blocked) {
+      const o = x.k === 'A' ? 'B' : 'A', fa = $('#f' + side(x.k)), fd = $('#f' + side(o));
+      fa.classList.add(x.k === me ? 'lunge-up' : 'lunge-down');
+      fd.classList.add('blocked');
+      sfx.nope();
+      log(`${pname(cur)}${whose(x.k)} ${x.spe ? 'lance son coup spécial' : 'attaque'}… <b>bloqué par l’Abri</b> de ${pname(D[o].team[D[o].act])}${whose(o)} !`);
+      await wait(800);
+      fa.classList.remove('lunge-up', 'lunge-down');
+      fd.classList.remove('blocked');
     } else if (x.e === 'hit' && x.dodge) {
       const o = x.k === 'A' ? 'B' : 'A', fa = $('#f' + side(x.k)), fd = $('#f' + side(o));
       fa.classList.add(x.k === me ? 'lunge-up' : 'lunge-down');
@@ -446,7 +519,7 @@ async function playRound(ev, D) {
       fd.classList.add('hurt');
       fd.insertAdjacentHTML('beforeend', `<span class="dmg${x.m > 1 ? ' big' : ''}">-${x.dmg}</span>`);
       if (x.spe || x.m > 1) burst(fd, x.spe ? '#ffd76a' : '#ff6b6b', x.spe ? 30 : 14);
-      log(`${pname(cur)}${whose(x.k)} ${x.spe ? 'lance son <b>coup spécial</b>' : 'attaque'} : ${x.dmg} dégâts${x.m > 1 ? ' · <b class="up">super efficace !</b>' : x.m < 1 ? ' · peu efficace…' : ''}${x.guarded ? ' (protégé)' : ''}${x.pierce ? ' · <b>Prescience</b> : la protection est traversée' : ''}${x.solid ? ` · ${pname(def)} tient bon grâce à <b>Solide</b> !` : ''}${x.eff ? ` · ${pname(def)} est <b>${x.eff}</b>` : ''}`);
+      log(`${pname(cur)}${whose(x.k)} ${x.spe ? 'lance son <b>coup spécial</b>' : 'attaque'}${x.n ? ` (coup ${x.n}/2)` : ''} : ${x.dmg} dégâts${x.tags?.length ? ' · ' + x.tags.join(' · ') : ''}${x.m > 1 ? ' · <b class="up">super efficace !</b>' : x.m < 1 ? ' · peu efficace…' : ''}${x.guarded ? ' (protégé)' : ''}${x.pierce ? ' · <b>Brise-garde</b> : passe à moitié à travers la défense' : ''}${x.solid ? ` · ${pname(def)} tient bon grâce à <b>Dernier souffle</b> !` : ''}${x.eff ? ` · ${pname(def)} est <b>${x.eff}</b>` : ''}`);
       await wait(750);
       fa.classList.remove('lunge-up', 'lunge-down');
       fd.classList.remove('hurt');

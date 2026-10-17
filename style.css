@@ -646,3 +646,17 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .dmg.heal { color: #b6ffc8; text-shadow: 0 3px 0 #15803d, 0 0 20px #4ade80; }
 .dodge .ft-card { animation: dodge .6s; }
 @keyframes dodge { 40% { translate: 40px 0; opacity: .5; } }
+
+/* Sorts et énergie */
+.bt-name .en { font-size: 13px; letter-spacing: 2px; color: #7dd3fc; text-shadow: 0 0 8px #38bdf8; }
+.hpbox .sts { display: block; margin-top: 2px; font: 700 11px 'Poppins', sans-serif; color: var(--mute); }
+.spells { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; background: #0003; border-radius: 16px; padding: 8px; }
+.sp-lbl { width: 100%; text-align: center; color: #7dd3fc; font: 800 12px 'Poppins', sans-serif; }
+.spell { display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 99px; background: #ffffff1c; color: #fff; font: 800 13px 'Poppins', sans-serif; border: 2px solid transparent; transition: transform .1s; }
+.spell small { font-size: 10px; color: #7dd3fc; letter-spacing: 1px; }
+.spell:hover:not(:disabled) { transform: translateY(-2px); background: #ffffff2e; }
+.spell.on { border-color: #7dd3fc; background: #38bdf833; box-shadow: 0 0 14px #38bdf888; }
+.spell:disabled { opacity: .35; cursor: not-allowed; }
+
+.blocked .ft-card { filter: drop-shadow(0 0 18px #7dd3fc) drop-shadow(0 0 6px #fff); animation: blockPulse .5s; }
+@keyframes blockPulse { 40% { scale: 1.05; } }
