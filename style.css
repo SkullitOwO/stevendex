@@ -691,3 +691,4 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .lb li { display: grid; grid-template-columns: 34px 1fr auto auto; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 12px; background: #f3f7fc; font-weight: 800; color: var(--navy); }
 .lb li.me { background: #fff3c4; } .lb span { text-align: center; } .lb em { font-style: normal; } .lb small { color: #c79a00; }
 @media (max-width: 800px) { .fr-cols { grid-template-columns: 1fr; } }
+input, textarea { -webkit-user-select: text; user-select: text; } /* Safari bloque la saisie sous un parent en user-select: none */
