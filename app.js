@@ -361,7 +361,7 @@ function renderBook() {
   page -= page % v;
   const bd = $('#binder');
   bd.className = 'binder v' + v;
-  bd.innerHTML = v === 2 ? `<div class="leaf-l">${pageHTML(page)}</div><div class="rings"></div><div class="leaf-r">${pageHTML(page + 1)}</div>`
+  bd.innerHTML = v === 2 ? `<div class="leaf-l">${pageHTML(page)}</div><div class="rings"><i></i><i></i><i></i><i></i></div><div class="leaf-r">${pageHTML(page + 1)}</div>`
     : `<div class="leaf-r">${pageHTML(page)}</div>`;
   pager();
 }
