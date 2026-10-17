@@ -610,16 +610,9 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .rope i { position: absolute; bottom: 0; width: 1cqw; height: 8cqw; transform: translateX(-50%); border-radius: .3cqw; background: linear-gradient(90deg, #a77a12, #ffe08a 45%, #b8860b); }
 .rope i::before { content: ''; position: absolute; left: 50%; top: -1cqw; width: 1.8cqw; height: 1.8cqw; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff3c0, #e0aa2a 55%, #8f6410); }
 .rope i::after { content: ''; position: absolute; left: 50%; bottom: -.4cqw; width: 3cqw; height: 1cqw; transform: translateX(-50%); border-radius: 50%; background: #b8860b; }
-.mdeco { width: 13cqw; height: 15cqw; display: grid; place-items: end center; }
-.mdeco span { font-size: 11cqw; line-height: 1; filter: drop-shadow(0 1.2cqw .8cqw #0005); transition: transform .2s; }
-.mdeco.filled::after { content: ''; position: absolute; bottom: -.6cqw; left: 20%; right: 20%; height: 1.6cqw; border-radius: 50%; background: #0004; filter: blur(.5cqw); z-index: -1; }
-.mdeco em { font: 800 5cqw 'Poppins', sans-serif; font-style: normal; color: #0004; }
-.mroom.editing .mf, .mroom.editing .pedestal, .mroom.editing .mdeco { cursor: pointer; }
-.mroom.editing .mf:hover .fr, .mroom.editing .ped-card:hover, .mroom.editing .mdeco:hover { outline: .4cqw dashed #ffcb05; outline-offset: .6cqw; }
-.mroom.editing .mdeco:not(.filled) { border: .3cqw dashed #0003; border-radius: 1.2cqw; }
-/* Ambiances */
+.mroom.editing .mf, .mroom.editing .pedestal, .mroom.editing .mroom.editing .mf:hover .fr, .mroom.editing .ped-card:hover, .mroom.editing .mroom.editing /* Ambiances */
 .t-galerie { --wall: linear-gradient(#f2f5f9, #e1e7ee); --wall2: linear-gradient(#e6ebf1, #d4dbe4); --ceil: #cdd6e0; --mat: #fff; --fborder: .7cqw solid #f5b301;
-  --floor: linear-gradient(90deg, #0000 95%, #b7c1cd 95%) 0 0 / 7cqw 7cqw, linear-gradient(#0000 95%, #b7c1cd 95%) 0 0 / 7cqw 7cqw, linear-gradient(#e9eef3, #d9e0e8); }
+  --floor: linear-gradient(90deg, #0000 95%, #9aa7b6 95%) 0 0 / 7cqw 7cqw, linear-gradient(#0000 95%, #9aa7b6 95%) 0 0 / 7cqw 7cqw, linear-gradient(#dde4ec, #c3cdd8); }
 .t-classique { --wall: linear-gradient(#0000 80%, #a85f60 80% 81%, #c47e7e 81%), linear-gradient(#e2a7a5, #d38f8e); --wall2: linear-gradient(#0000 80%, #9a5455 80% 81%, #b97172 81%), linear-gradient(#d69a98, #c58382);
   --ceil: #c48886; --mat: #2a1a14; --fborder: 1cqw solid #c9962e;
   --floor: linear-gradient(90deg, #0000 97%, #00000030 97%) 0 0 / 12cqw 12cqw, linear-gradient(#7c1d22, #a53338); }
@@ -630,3 +623,19 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .t-bois { --wall: repeating-linear-gradient(90deg, #6b3e1f 0 5cqw, #5a3318 5cqw 5.3cqw, #74431f 5.3cqw 10cqw, #5a3318 10cqw 10.3cqw); --wall2: repeating-linear-gradient(90deg, #5e361b 0 5cqw, #4a2a13 5cqw 5.3cqw);
   --ceil: #3d2412; --mat: #f3ead6; --fborder: .9cqw solid #3a2210; --floor: repeating-linear-gradient(90deg, #a76d3d 0 7cqw, #8f5b31 7cqw 7.3cqw), linear-gradient(#c58a52, #7a4a24); }
 @media (max-width: 760px) { .mroom { aspect-ratio: 4 / 3; --D: 40cqw; } }
+
+/* Meubles 3D placés à la main */
+.item { pointer-events: auto; }
+.item img { display: block; width: 100%; filter: drop-shadow(0 1cqw .8cqw #0004); }
+.item::after { content: ''; position: absolute; left: 12%; right: 12%; bottom: -.4cqw; height: 1.4cqw; border-radius: 50%; background: #0003; filter: blur(.5cqw); z-index: -1; }
+.mroom.editing .item { cursor: grab; }
+.mroom.editing .item:active { cursor: grabbing; }
+.item.sel img { filter: drop-shadow(0 0 .35cqw #ffcb05) drop-shadow(0 0 .35cqw #ffcb05) drop-shadow(0 1cqw .8cqw #0004); }
+.mu-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; background: #fff; padding: 10px 14px; border-radius: 99px; box-shadow: 0 8px 24px #1d2c5e14; }
+.mu-tools[hidden] { display: none; }
+.mu-tools .btn { font-size: 15px; padding: 9px 18px; }
+.mu-sel { font: 800 15px 'Poppins', sans-serif; padding: 0 6px; }
+.mu-hint { font: 700 13px 'Poppins', sans-serif; color: var(--mute); }
+.dc .ph { display: grid; place-items: center; height: 70px; }
+.dc .ph img { max-width: 90px; max-height: 70px; }
+.w.back, .w.left, .w.right { box-shadow: inset 0 -1.4cqw 0 #00000026; }

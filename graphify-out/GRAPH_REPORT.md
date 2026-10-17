@@ -1,17 +1,17 @@
 # Graph Report - PokeBooster  (2026-10-17)
 
 ## Corpus Check
-- 8 files · ~25,132 words
+- 8 files · ~25,489 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: .css 1)
 
 ## Summary
-- 138 nodes · 295 edges · 16 communities (13 shown, 3 thin omitted)
+- 141 nodes · 299 edges · 16 communities (13 shown, 3 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ae6109c0`
+- Built from commit: `a8d87655`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -110,8 +110,8 @@ Cohesion: 0.80
 Nodes (5): pageHTML(), pager(), perView(), renderBook(), turn()
 
 ### Community 14 - "museum.js"
-Cohesion: 0.23
-Nodes (15): cleanWall(), dec(), DECOS, enc(), esc(), pickCard(), pickDeco(), placed() (+7 more)
+Cohesion: 0.18
+Nodes (18): cleanWall(), dec(), DECOS, enc(), esc(), frameHTML(), pickCard(), pickDeco() (+10 more)
 
 ## Knowledge Gaps
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
@@ -120,7 +120,7 @@ Nodes (15): cleanWall(), dec(), DECOS, enc(), esc(), pickCard(), pickDeco(), pla
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `joinRoom()` connect `duelSetup` to `play.js`, `battleTeam`?**
-  _High betweenness centrality (0.002) - this node is a cross-community bridge._
+  _High betweenness centrality (0.001) - this node is a cross-community bridge._
 - **Should `play.js` be split into smaller, more focused modules?**
   _Cohesion score 0.1437908496732026 - nodes in this community are weakly interconnected._
 - **Why does `openPack()` connect `app.js` to `renderMarket`?**

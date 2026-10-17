@@ -76,6 +76,7 @@
       <button class="btn" id="muShare">🔗 Partager mon musée</button>
     </div>
     <div id="museumRoom"></div>
+    <div class="mu-tools" id="muTools" hidden></div>
   </section>
   <section id="play" class="view">
     <div class="shop-head">
@@ -110,5 +111,7 @@
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="play.js"></script>
 <script src="museum.js"></script>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }</script>
+<script type="module" src="decor3d.js"></script>
 </body>
 </html>
