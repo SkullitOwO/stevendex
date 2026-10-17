@@ -639,3 +639,10 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .dc .ph { display: grid; place-items: center; height: 70px; }
 .dc .ph img { max-width: 90px; max-height: 70px; }
 .w.back, .w.left, .w.right { box-shadow: inset 0 -1.4cqw 0 #00000026; }
+
+/* Passifs de combat */
+.tm .ps { font: 800 11px 'Poppins', sans-serif; color: var(--blue); }
+.hpbox .pas { display: block; margin-top: 4px; font: 800 11px 'Poppins', sans-serif; color: #6b4fd8; }
+.dmg.heal { color: #b6ffc8; text-shadow: 0 3px 0 #15803d, 0 0 20px #4ade80; }
+.dodge .ft-card { animation: dodge .6s; }
+@keyframes dodge { 40% { translate: 40px 0; opacity: .5; } }

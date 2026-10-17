@@ -1,17 +1,17 @@
 # Graph Report - PokeBooster  (2026-10-17)
 
 ## Corpus Check
-- 8 files · ~25,489 words
+- 9 files · ~26,591 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 1 file(s) not represented in the graph (top: .css 1)
+- Unclassified: 22 file(s) not represented in the graph (top: .glb 21, .css 1)
 
 ## Summary
-- 141 nodes · 299 edges · 16 communities (13 shown, 3 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
+- 157 nodes · 321 edges · 17 communities (14 shown, 3 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a8d87655`
+- Built from commit: `3cbf7e06`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -31,6 +31,7 @@
 - renderBook
 - museum.js
 - fx.js
+- decor3d.js
 
 ## God Nodes (most connected - your core abstractions)
 1. `send()` - 11 edges
@@ -59,7 +60,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (16 total, 3 thin omitted)
+## Communities (17 total, 3 thin omitted)
 
 ### Community 0 - "play.js"
 Cohesion: 0.14
@@ -110,8 +111,12 @@ Cohesion: 0.80
 Nodes (5): pageHTML(), pager(), perView(), renderBook(), turn()
 
 ### Community 14 - "museum.js"
-Cohesion: 0.18
-Nodes (18): cleanWall(), dec(), DECOS, enc(), esc(), frameHTML(), pickCard(), pickDeco() (+10 more)
+Cohesion: 0.15
+Nodes (21): clamp(), cleanWall(), dec(), decorReady(), enc(), esc(), fillItems(), frameHTML() (+13 more)
+
+### Community 16 - "decor3d.js"
+Cohesion: 0.20
+Nodes (9): ELEV, load(), loader, models, renderer, scene, shot(), shots (+1 more)
 
 ## Knowledge Gaps
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.

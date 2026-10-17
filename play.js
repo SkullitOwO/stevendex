@@ -203,11 +203,37 @@ function mult(atkId, defId) {
 }
 console.assert(mult(6, 1) === 2 && mult(1, 6) === .5 && mult(25, 7) === 2, 'table des types');
 
-const mkSide = team => ({ team: team.map(([id, s]) => { const st = stats(POKEMON[id - 1], s === 2 ? 'anim' : !!s); return { id, s, hp: st.hp, max: st.hp, atk: st.atk, spd: st.spd, sp: true }; }), act: 0, lastG: false });
+// Passif de chaque carte, selon son type principal
+const PASSIVES = {
+  feu: ['🔥', 'Brûlure', '25 % de chances de brûler la cible (−6 PV par tour, 3 tours).'],
+  eau: ['💧', 'Régénération', 'Récupère 6 % de ses PV max à chaque fin de tour.'],
+  plante: ['🍃', 'Photosynthèse', 'Se soigne de 12 % de ses PV max quand il se protège.'],
+  electrik: ['⚡', 'Paralysie', '20 % de chances que l\'adversaire perde son prochain tour.'],
+  glace: ['❄️', 'Gel', '15 % de chances que l\'adversaire perde son prochain tour.'],
+  poison: ['☠️', 'Venin', 'Chaque coup empoisonne : −4 PV par dose et par tour (3 doses max).'],
+  combat: ['👊', 'Riposte', 'Quand il se protège, renvoie 50 % des dégâts reçus.'],
+  roche: ['🪨', 'Solide', 'Survit une fois à un coup fatal avec 1 PV.'],
+  sol: ['⛰️', 'Carapace', 'Subit 15 % de dégâts en moins.'],
+  vol: ['🪶', 'Esquive', '15 % de chances d\'esquiver une attaque.'],
+  psy: ['🔮', 'Prescience', 'Son coup spécial traverse la protection.'],
+  insecte: ['🐛', 'Essaim', '+20 % de dégâts si un allié est K.O.'],
+  spectre: ['👻', 'Hantise', 'En tombant K.O., inflige 20 dégâts à son adversaire.'],
+  dragon: ['🐉', 'Fureur', '+25 % de dégâts sous la moitié de ses PV.'],
+  fee: ['✨', 'Charme', 'Son adversaire inflige 20 % de dégâts en moins.'],
+  acier: ['⚙️', 'Blindage', 'Immunisé contre brûlure, poison, paralysie et gel.'],
+  normal: ['⭐', 'Adaptation', '+5 % d\'attaque par tour passé au combat (max +30 %).'],
+};
+// Type du passif : le type principal, sauf un Normal à double type qui prend son second type (ex. Roucool Normal/Vol → Esquive)
+const ptypeOf = p => (p.types[0] === 'normal' && p.types[1]) || p.types[0];
+const ptype = c => ptypeOf(POKEMON[c.id - 1]);
+const passiveOf = c => PASSIVES[ptype(c)];
+const mkSide = team => ({ team: team.map(([id, s]) => { const st = stats(POKEMON[id - 1], s === 2 ? 'anim' : !!s); return { id, s, hp: st.hp, max: st.hp, atk: st.atk, spd: st.spd, sp: true, burn: 0, psn: 0, stun: false, solid: false, turns: 0 }; }), act: 0, lastG: false });
 
-// Un tour : changements, puis protections, puis attaques par ordre de vitesse. L'hôte (ou le jeu solo) fait foi.
+// Un tour : changements, protections, attaques par ordre de vitesse, puis effets de fin de tour. L'hôte fait foi.
+// Événements : hit (attaque), fx (effet de passif : d = variation de PV de la carte active du camp k), etc.
 function resolve(S, acts, rnd = Math.random) {
-  const ev = [], guard = {};
+  const ev = [], guard = {}, other = k => (k === 'A' ? 'B' : 'A'), active = k => S[k].team[S[k].act];
+  const hurt = (k, d, txt) => { const c = active(k), before = c.hp; c.hp = Math.max(0, Math.min(c.max, c.hp + d)); ev.push({ k, e: 'fx', d: c.hp - before, txt, ko: before > 0 && c.hp === 0 }); };
   for (const k of ['A', 'B']) {
     const s = S[k], a = acts[k];
     if (a.a === 'swp' && a.to !== s.act && s.team[a.to]?.hp > 0) { s.act = a.to; ev.push({ k, e: 'swp', to: a.to }); }
@@ -216,24 +242,55 @@ function resolve(S, acts, rnd = Math.random) {
     const s = S[k];
     guard[k] = acts[k].a === 'grd' && !s.lastG;
     s.lastG = guard[k];
-    if (guard[k]) ev.push({ k, e: 'grd' });
+    if (guard[k]) {
+      ev.push({ k, e: 'grd' });
+      const c = active(k);
+      if (ptype(c) === 'plante') hurt(k, Math.round(c.max * .12), 'Photosynthèse');
+    }
   }
-  const order = ['A', 'B'].sort((x, y) => (S[y].team[S[y].act].spd - S[x].team[S[x].act].spd) || (rnd() - .5));
+  const order = ['A', 'B'].sort((x, y) => (active(y).spd - active(x).spd) || (rnd() - .5));
   for (const k of order) {
-    const a = acts[k];
+    const a = acts[k], o = other(k), me = active(k), him = active(o);
     if (a.a !== 'atk' && a.a !== 'spe') continue;
-    const o = k === 'A' ? 'B' : 'A', me = S[k].team[S[k].act], him = S[o].team[S[o].act];
     if (me.hp <= 0 || him.hp <= 0) continue;
+    if (me.stun) { me.stun = false; ev.push({ k, e: 'fx', d: 0, txt: 'paralysé, il ne peut pas attaquer' }); continue; }
     const spe = a.a === 'spe' && me.sp;
     if (spe) me.sp = false;
-    const m = mult(me.id, him.id);
-    const dmg = Math.max(1, Math.round(me.atk * m * (spe ? 1.8 : 1) * (.85 + rnd() * .15) * (guard[o] ? .4 : 1)));
+    if (ptype(him) === 'vol' && rnd() < .15) { ev.push({ k, e: 'hit', dmg: 0, m: 1, spe, dodge: true }); continue; }
+    const m = mult(me.id, him.id), pierce = spe && ptype(me) === 'psy';
+    let f = m * (spe ? 1.8 : 1) * (.85 + rnd() * .15) * (guard[o] && !pierce ? .4 : 1);
+    if (ptype(me) === 'dragon' && me.hp < me.max / 2) f *= 1.25;
+    if (ptype(me) === 'insecte' && S[k].team.some(c => c.hp === 0)) f *= 1.2;
+    if (ptype(me) === 'normal') f *= 1 + Math.min(.3, me.turns * .05);
+    if (ptype(him) === 'fee') f *= .8;
+    if (ptype(him) === 'sol') f *= .85;
+    let dmg = Math.max(1, Math.round(me.atk * f)), solid = false;
+    if (dmg >= him.hp && ptype(him) === 'roche' && !him.solid && him.hp > 1) { dmg = him.hp - 1; him.solid = solid = true; }
     him.hp = Math.max(0, him.hp - dmg);
-    ev.push({ k, e: 'hit', dmg, m, spe, guarded: !!guard[o], ko: him.hp === 0 });
+    // effets infligés par l'attaquant (le Blindage d'Acier les bloque)
+    let eff = '';
+    if (him.hp > 0 && ptype(him) !== 'acier') {
+      const t = ptype(me);
+      if (t === 'feu' && rnd() < .25) { him.burn = 3; eff = 'brûlé'; }
+      if (t === 'poison') { him.psn = Math.min(3, him.psn + 1); eff = `empoisonné (×${him.psn})`; }
+      if ((t === 'electrik' && rnd() < .2) || (t === 'glace' && rnd() < .15)) { him.stun = true; eff = t === 'glace' ? 'gelé' : 'paralysé'; }
+    }
+    ev.push({ k, e: 'hit', dmg, m, spe, guarded: !!guard[o] && !pierce, pierce, ko: him.hp === 0, solid, eff });
+    if (guard[o] && ptype(him) === 'combat' && him.hp > 0) hurt(k, -Math.max(1, Math.round(dmg * .5)), 'Riposte');
+    if (him.hp === 0 && ptype(him) === 'spectre' && me.hp > 0) hurt(k, -20, 'Hantise');
+  }
+  // fin de tour : brûlure, poison, régénération, adaptation
+  for (const k of ['A', 'B']) {
+    const c = active(k);
+    if (c.hp <= 0) continue;
+    if (c.burn) { c.burn--; hurt(k, -6, 'Brûlure'); }
+    if (c.psn && c.hp > 0) hurt(k, -4 * c.psn, 'Venin');
+    if (ptype(c) === 'eau' && c.hp > 0 && c.hp < c.max) hurt(k, Math.round(c.max * .06), 'Régénération');
+    c.turns++;
   }
   for (const k of ['A', 'B']) {
     const s = S[k];
-    if (s.team[s.act].hp > 0) continue;
+    if (active(k).hp > 0) continue;
     const nx = s.team.findIndex(c => c.hp > 0);
     ev.push(nx >= 0 ? { k, e: 'next', to: nx } : { k, e: 'lose' });
     if (nx >= 0) s.act = nx;
@@ -246,10 +303,11 @@ function battleTeam() {
   const chosen = [];
   const draw = () => {
     const g = stage(`<div class="g-card wide"><h2>Choisis tes 3 cartes</h2>
-      <p>Combat ${vsTxt()} · <b>${chosen.length}/3</b> · l'ordre compte : la 1ʳᵉ entre en premier.</p>
+      <p>Combat ${vsTxt()} · <b>${chosen.length}/3</b> · l'ordre compte : la 1ʳᵉ entre en premier. Chaque carte a un passif selon son type (survole-la pour le détail).</p>
       <div class="team-grid">${keys.map(k => {
         const { p, shiny } = keyInfo(k), s = stats(p, shiny), n = chosen.indexOf(k);
-        return `<button class="tm${n >= 0 ? ' on' : ''}" data-k="${k}">${cardHTML(p, shiny)}<span class="st">❤ ${s.hp} · ⚔ ${s.atk} · ⚡ ${s.spd}</span>${n >= 0 ? `<b class="tm-n">${n + 1}</b>` : ''}</button>`;
+        const [pe, pn, pd] = PASSIVES[ptypeOf(p)];
+        return `<button class="tm${n >= 0 ? ' on' : ''}" data-k="${k}" title="${pn} : ${pd}">${cardHTML(p, shiny)}<span class="st">❤ ${s.hp} · ⚔ ${s.atk} · ⚡ ${s.spd}</span><span class="ps">${pe} ${pn}</span>${n >= 0 ? `<b class="tm-n">${n + 1}</b>` : ''}</button>`;
       }).join('')}</div>
       <button class="btn" id="go" ${chosen.length === 3 ? '' : 'disabled'}>Au combat !</button></div>`);
     g.onclick = e => {
@@ -292,7 +350,8 @@ function drawFighters(S) {
   for (const [k, f, b] of [[G.me, '#fMe', '#bMe'], [opp(), '#fOpp', '#bOpp']]) {
     const s = S[k], c = s.team[s.act], r = c.hp / c.max;
     $(f).innerHTML = `<div class="ft-card">${cardHTML(POKEMON[c.id - 1], c.s === 2 ? 'anim' : !!c.s)}</div>
-      <div class="hpbox"><b>${pname(c)}</b><div class="hp"><i class="${r < .25 ? 'low' : r < .5 ? 'mid' : ''}" style="width:${r * 100}%"></i></div><span>${c.hp} / ${c.max} PV</span></div>`;
+      <div class="hpbox"><b>${pname(c)}</b><div class="hp"><i class="${r < .25 ? 'low' : r < .5 ? 'mid' : ''}" style="width:${r * 100}%"></i></div><span>${c.hp} / ${c.max} PV</span>
+        <small class="pas" title="${passiveOf(c)[2]}">${passiveOf(c)[0]} ${passiveOf(c)[1]}${c.burn ? ' · 🔥 brûlé' : ''}${c.psn ? ` · ☠️ ×${c.psn}` : ''}${c.stun ? ' · 💫 étourdi' : ''}</small></div>`;
     $(b).innerHTML = s.team.map((x, i) => `<div class="bn${i === s.act ? ' act' : ''}${x.hp ? '' : ' ko'}">${cardHTML(POKEMON[x.id - 1], x.s === 2 ? 'anim' : !!x.s)}</div>`).join('');
   }
 }
@@ -349,6 +408,31 @@ async function playRound(ev, D) {
       sfx.pop();
       log(`${pname(cur)}${whose(x.k)} se protège !`);
       await wait(700);
+    } else if (x.e === 'fx') {
+      const f = $('#f' + side(x.k));
+      cur.hp = Math.max(0, Math.min(cur.max, cur.hp + x.d));
+      const r = cur.hp / cur.max, bar = f.querySelector('.hp i');
+      bar.style.width = r * 100 + '%';
+      bar.className = r < .25 ? 'low' : r < .5 ? 'mid' : '';
+      f.querySelector('.hpbox span').textContent = `${cur.hp} / ${cur.max} PV`;
+      if (x.d) {
+        f.insertAdjacentHTML('beforeend', `<span class="dmg${x.d > 0 ? ' heal' : ''}">${x.d > 0 ? '+' : ''}${x.d}</span>`);
+        x.d < 0 ? (f.classList.add('hurt'), sfx.hit(false)) : sfx.pop();
+      }
+      log(`${pname(cur)}${whose(x.k)} · <b>${x.txt}</b>${x.d < 0 ? ` : −${-x.d} PV` : x.d > 0 ? ` : +${x.d} PV` : ''}`);
+      await wait(800);
+      f.classList.remove('hurt');
+      f.querySelector('.dmg')?.remove();
+      if (x.ko) { f.classList.add('ko'); sfx.nope(); log(`${pname(cur)}${whose(x.k)} est K.O. !`); await wait(950); f.classList.remove('ko'); }
+    } else if (x.e === 'hit' && x.dodge) {
+      const o = x.k === 'A' ? 'B' : 'A', fa = $('#f' + side(x.k)), fd = $('#f' + side(o));
+      fa.classList.add(x.k === me ? 'lunge-up' : 'lunge-down');
+      fd.classList.add('dodge');
+      sfx.whoosh();
+      log(`${pname(cur)}${whose(x.k)} attaque… mais ${pname(D[o].team[D[o].act])}${whose(o)} <b>esquive</b> !`);
+      await wait(800);
+      fa.classList.remove('lunge-up', 'lunge-down');
+      fd.classList.remove('dodge');
     } else if (x.e === 'hit') {
       const o = x.k === 'A' ? 'B' : 'A', def = D[o].team[D[o].act], fa = $('#f' + side(x.k)), fd = $('#f' + side(o));
       fa.classList.add(x.k === me ? 'lunge-up' : 'lunge-down');
@@ -362,7 +446,7 @@ async function playRound(ev, D) {
       fd.classList.add('hurt');
       fd.insertAdjacentHTML('beforeend', `<span class="dmg${x.m > 1 ? ' big' : ''}">-${x.dmg}</span>`);
       if (x.spe || x.m > 1) burst(fd, x.spe ? '#ffd76a' : '#ff6b6b', x.spe ? 30 : 14);
-      log(`${pname(cur)}${whose(x.k)} ${x.spe ? 'lance son <b>coup spécial</b>' : 'attaque'} : ${x.dmg} dégâts${x.m > 1 ? ' · <b class="up">super efficace !</b>' : x.m < 1 ? ' · peu efficace…' : ''}${x.guarded ? ' (protégé)' : ''}`);
+      log(`${pname(cur)}${whose(x.k)} ${x.spe ? 'lance son <b>coup spécial</b>' : 'attaque'} : ${x.dmg} dégâts${x.m > 1 ? ' · <b class="up">super efficace !</b>' : x.m < 1 ? ' · peu efficace…' : ''}${x.guarded ? ' (protégé)' : ''}${x.pierce ? ' · <b>Prescience</b> : la protection est traversée' : ''}${x.solid ? ` · ${pname(def)} tient bon grâce à <b>Solide</b> !` : ''}${x.eff ? ` · ${pname(def)} est <b>${x.eff}</b>` : ''}`);
       await wait(750);
       fa.classList.remove('lunge-up', 'lunge-down');
       fd.classList.remove('hurt');

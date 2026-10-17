@@ -12,15 +12,15 @@
     "semantic_hash": ""
   },
   "fanart.js": {
-    "mtime": 1792198006.940967,
-    "seen": 1792198161.9691138,
-    "ast_hash": "226e0197e7e48aa577023f58d99f3c60",
+    "mtime": 1792232542.4612148,
+    "seen": 1792232550.2699575,
+    "ast_hash": "c3da99f73c7ef3655ecf8d540a1fdcbd",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792198098.7874825,
-    "seen": 1792198161.9691138,
-    "ast_hash": "eff926bbab11b2a93b2fb6c294b4cc79",
+    "mtime": 1792198662.8764763,
+    "seen": 1792232550.2699575,
+    "ast_hash": "a2c2089fb6d3f02da0bc1fe6effe0448",
     "semantic_hash": ""
   },
   "scenes.js": {
@@ -180,9 +180,21 @@
     "semantic_hash": ""
   },
   "museum.js": {
-    "mtime": 1792198408.4779162,
-    "seen": 1792198454.4947228,
-    "ast_hash": "18b3c97f6a5c9a62f84fb6a91b2dfd04",
+    "mtime": 1792198788.6162426,
+    "seen": 1792232550.2699575,
+    "ast_hash": "d15bdf618f17d3fc7383a901b2d9e808",
+    "semantic_hash": ""
+  },
+  "decor3d.js": {
+    "mtime": 1792198598.069375,
+    "seen": 1792232550.2699575,
+    "ast_hash": "dbc331729347fb0871f981b9b7fce7f8",
+    "semantic_hash": ""
+  },
+  "models/LICENCE-kenney.txt": {
+    "mtime": 1792198585.3476665,
+    "seen": 1792232550.2699575,
+    "ast_hash": "561337dc6db74f436b89b7323d183a53",
     "semantic_hash": ""
   }
 }
