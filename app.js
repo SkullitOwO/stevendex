@@ -346,6 +346,12 @@ function pageHTML(i) {
   if (i < 0 || i >= PAGES) return '<div class="page blank"></div>';
   return `<div class="page"><div class="pockets">${POKEMON.slice(i * PER, (i + 1) * PER).map(pocketHTML).join('')}</div><div class="pnum">${i + 1}</div></div>`;
 }
+function pager() {
+  const v = perView();
+  $('#pgTxt').textContent = v === 2 ? `Pages ${page + 1}–${Math.min(page + 2, PAGES)} sur ${PAGES}` : `Page ${page + 1} sur ${PAGES}`;
+  $('#pgPrev').disabled = page === 0;
+  $('#pgNext').disabled = page + v >= PAGES;
+}
 function renderBook() {
   const v = perView();
   page -= page % v;
@@ -353,26 +359,35 @@ function renderBook() {
   bd.className = 'binder v' + v;
   bd.innerHTML = v === 2 ? `<div class="leaf-l">${pageHTML(page)}</div><div class="rings"></div><div class="leaf-r">${pageHTML(page + 1)}</div>`
     : `<div class="leaf-r">${pageHTML(page)}</div>`;
-  $('#pgTxt').textContent = v === 2 ? `Pages ${page + 1}–${Math.min(page + 2, PAGES)} sur ${PAGES}` : `Page ${page + 1} sur ${PAGES}`;
-  $('#pgPrev').disabled = page === 0;
-  $('#pgNext').disabled = page + v >= PAGES;
+  pager();
 }
 let turning = false;
+// La feuille qui tourne emporte la page actuelle (le nœud lui-même, sans le recréer) et montre la nouvelle au dos.
+// À la fin on déplace cette page dans son côté : rien n'est redessiné, donc ni clignotement ni saut.
 function turn(dir) {
   const v = perView(), np = page + dir * v, bd = $('#binder');
   if (turning || np < 0 || np >= PAGES) return;
   turning = true;
   sfx.page();
-  const end = () => { page = np; turning = false; renderBook(); };
-  if (v === 1) { bd.classList.add(dir > 0 ? 'slide-next' : 'slide-prev'); return setTimeout(end, 260); }
+  if (v === 1) {
+    bd.classList.add(dir > 0 ? 'slide-next' : 'slide-prev');
+    return setTimeout(() => { page = np; turning = false; renderBook(); }, 260);
+  }
+  const L = bd.querySelector('.leaf-l'), R = bd.querySelector('.leaf-r'), from = dir > 0 ? R : L, to = dir > 0 ? L : R;
   const leaf = document.createElement('div');
   leaf.className = 'turning ' + (dir > 0 ? 'fwd' : 'bwd');
-  leaf.innerHTML = dir > 0
-    ? `<div class="face">${pageHTML(page + 1)}</div><div class="face backf">${pageHTML(np)}</div>`
-    : `<div class="face">${pageHTML(page)}</div><div class="face backf">${pageHTML(np + 1)}</div>`;
-  bd.querySelector(dir > 0 ? '.leaf-r' : '.leaf-l').innerHTML = pageHTML(dir > 0 ? np + 1 : np);
+  leaf.innerHTML = `<div class="face"></div><div class="face backf">${pageHTML(dir > 0 ? np : np + 1)}</div>`;
+  leaf.firstElementChild.appendChild(from.firstElementChild);
+  from.innerHTML = pageHTML(dir > 0 ? np + 1 : np);
+  bd.classList.add(dir > 0 ? 'turn-f' : 'turn-b');
   bd.appendChild(leaf);
-  setTimeout(end, 820); // pas animationend : il ne part jamais si la page est redessinée pendant l'animation
+  setTimeout(() => {
+    to.replaceChildren(leaf.querySelector('.backf').firstElementChild);
+    leaf.remove();
+    bd.classList.remove('turn-f', 'turn-b');
+    page = np; turning = false;
+    pager();
+  }, 820);
 }
 
 /* ---------- Marché ---------- */

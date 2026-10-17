@@ -502,3 +502,11 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
   -webkit-mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / 8px 51% repeat-x, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 8px 51% repeat-x; }
 .op-layer { clip-path: polygon(var(--p, 0%) 0, 100% 0, 100% 100%, 0 100%, 0 9%, var(--p, 0%) 9%); }
 .op-back { clip-path: polygon(0 0, calc(100% - var(--p, 0%)) 0, calc(100% - var(--p, 0%)) 9%, 100% 9%, 100% 100%, 0 100%); }
+
+/* Tour de page : ombre portée sur la page découverte, rien ne clignote */
+.turn-f .leaf-r .page::after, .turn-b .leaf-l .page::after { content: ''; position: absolute; inset: 0; z-index: 12; border-radius: 8px; pointer-events: none; animation: pageShade .8s ease-in forwards; }
+.turn-f .leaf-r .page::after { background: linear-gradient(90deg, #0004, transparent 60%); }
+.turn-b .leaf-l .page::after { background: linear-gradient(270deg, #0004, transparent 60%); }
+@keyframes pageShade { to { opacity: 0; } }
+.turning .face .page { background: #fbf8f1; }
+.turning .pocket.has::after { display: none; }

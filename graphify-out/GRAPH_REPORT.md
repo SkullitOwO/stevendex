@@ -1,7 +1,7 @@
 # Graph Report - PokeBooster  (2026-10-17)
 
 ## Corpus Check
-- 7 files · ~23,898 words
+- 7 files · ~23,919 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: .css 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `aa4500db`
+- Built from commit: `b6283a36`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
