@@ -270,8 +270,8 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .pocket .cnt { position: absolute; top: -7px; right: -7px; z-index: 10; background: var(--navy); color: #fff; font-size: 11px; padding: 2px 7px; border-radius: 99px; border: 2px solid #fff; }
 .pnum { position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; font-size: 12px; color: #b9ad92; font-weight: 900; }
 .turning { position: absolute; top: 18px; bottom: 18px; z-index: 30; transform-style: preserve-3d; }
-.turning.fwd { left: calc(50% + 17px); right: 18px; transform-origin: left center; animation: turnF .8s cubic-bezier(.45, .05, .55, .95) forwards; }
-.turning.bwd { left: 18px; right: calc(50% + 17px); transform-origin: right center; animation: turnB .8s cubic-bezier(.45, .05, .55, .95) forwards; }
+.turning.fwd { left: calc(50% + 17px); right: 18px; transform-origin: -17px 50%; animation: turnF .8s cubic-bezier(.45, .05, .55, .95) forwards; }
+.turning.bwd { left: 18px; right: calc(50% + 17px); transform-origin: calc(100% + 17px) 50%; animation: turnB .8s cubic-bezier(.45, .05, .55, .95) forwards; }
 @keyframes turnF { to { transform: rotateY(-180deg); } }
 @keyframes turnB { to { transform: rotateY(180deg); } }
 .face { position: absolute; inset: 0; backface-visibility: hidden; }
