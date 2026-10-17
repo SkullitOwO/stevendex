@@ -176,9 +176,8 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .op-pack:not(.torn):hover { animation: wobble .5s; }
 @keyframes packIn { from { transform: translateY(80px) scale(.5) rotate(-8deg); opacity: 0; } }
 @keyframes wobble { 30% { transform: rotate(-2deg) scale(1.02); } 60% { transform: rotate(2deg) scale(1.02); } }
-.tear-top, .tear-body, .tear-rest { position: absolute; inset: 0; filter: drop-shadow(0 20px 30px #0009); }
+.tear-top, .tear-body, .tear-rest { position: absolute; inset: 0; }
 .tear-top { z-index: 1; }
-.tear-top .pack { filter: drop-shadow(0 6px 8px #0007); }
 .tear-body { clip-path: inset(9% 0 0 0); }
 .tear-line { position: absolute; left: 3%; right: 3%; top: 9%; border-top: 3px dashed #fff; filter: drop-shadow(0 0 3px #000); z-index: 2; }
 .tear-line span { position: absolute; top: -17px; left: -11px; font-size: 22px; color: #fff; transition: left .05s; animation: bob .8s ease-in-out infinite; }
@@ -484,3 +483,4 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 /* Pas de sélection ni de glisser-déposer pendant les gestes */
 .overlay, .pack, .slot, .card, .deck { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .overlay img, .pack img, .card img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
+.op-pack { filter: drop-shadow(0 18px 26px #0008); }
