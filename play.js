@@ -206,7 +206,7 @@ console.assert(mult(6, 1) === 2 && mult(1, 6) === .5 && mult(25, 7) === 2, 'tabl
 // Passifs mécaniques : chaque carte en a un, tiré d'une liste cohérente avec son type (toujours le même pour un Pokémon donné)
 const PASSIVES = {
   first: ['⚡', 'Ouverture', 'Sa première attaque inflige ×2.'],
-  double: ['⚔️', 'Furie', 'Frappe deux fois (×0,85 chacune), puis se repose le tour suivant.'],
+  double: ['⚔️', 'Furie', 'Frappe deux fois (×0,85 chacune), puis s\'épuise le tour suivant : ni attaque, ni Abri, ni Barrière.'],
   quick: ['💨', 'Vif', 'Agit toujours en premier.'],
   rage: ['😤', 'Rage', '+12 % d\'attaque à chaque coup reçu (jusqu\'à +48 %).'],
   vamp: ['🩸', 'Vampirisme', 'Récupère 35 % des dégâts qu\'il inflige.'],
@@ -247,7 +247,7 @@ const pasIdOf = p => { const pool = POOLS[ptypeOf(p)]; return pool[p.id % pool.l
 const passiveFor = p => PASSIVES[pasIdOf(p)];
 const pas = c => pasIdOf(POKEMON[c.id - 1]);
 const passiveOf = c => PASSIVES[pas(c)];
-const mkSide = team => ({ team: team.map(([id, s]) => { const st = stats(POKEMON[id - 1], s === 2 ? 'anim' : !!s); return { id, s, hp: st.hp, max: st.hp, atk: st.atk, spd: st.spd, sp: true, burn: 0, psn: 0, stun: false, solid: false, used: false, rest: false, rage: 0, focus: false, boost: 0, weak: 0 }; }), act: 0, lastG: false, en: 2 });
+const mkSide = team => ({ team: team.map(([id, s]) => { const st = stats(POKEMON[id - 1], s === 2 ? 'anim' : !!s); return { id, s, hp: st.hp, max: st.hp, atk: st.atk, spd: st.spd, sp: true, burn: 0, psn: 0, stun: false, solid: false, used: false, rest: 0, rage: 0, focus: false, boost: 0, weak: 0 }; }), act: 0, lastG: false, en: 2 });
 
 // Un tour : changements, sorts, protections, attaques (priorité puis vitesse), effets de fin de tour. L'hôte fait foi.
 // Événements : swp/next (entrée en jeu), spell, grd, hit (attaque), fx (effet : d = variation de PV de la carte active du camp k), lose
@@ -265,7 +265,7 @@ function resolve(S, acts, rnd = Math.random) {
   }
   for (const k of ['A', 'B']) {
     const s = S[k], sp = SPELLS[acts[k].sp], c = active(k);
-    if (!sp || s.en < sp[2]) continue;
+    if (!sp || s.en < sp[2] || (acts[k].sp === 'barrier' && c.rest)) continue;
     s.en -= sp[2];
     const id = acts[k].sp;
     if (id === 'heal') { hurt(k, Math.round(c.max * .35), 'Soin'); ev[ev.length - 1].spell = id; continue; }
@@ -278,7 +278,7 @@ function resolve(S, acts, rnd = Math.random) {
   }
   for (const k of ['A', 'B']) {
     const s = S[k];
-    guard[k] = acts[k].a === 'grd' && !s.lastG;
+    guard[k] = acts[k].a === 'grd' && !s.lastG && !active(k).rest;
     s.lastG = guard[k];
     if (guard[k]) { ev.push({ k, e: 'grd' }); if (pas(active(k)) === 'focus') active(k).focus = true; }
   }
@@ -288,7 +288,7 @@ function resolve(S, acts, rnd = Math.random) {
     const a = acts[k], o = other(k), me = active(k);
     if (a.a !== 'atk' && a.a !== 'spe') continue;
     if (me.hp <= 0 || active(o).hp <= 0) continue;
-    if (me.rest) { me.rest = false; ev.push({ k, e: 'fx', d: 0, txt: 'se repose après sa Furie' }); continue; }
+    if (me.rest) { ev.push({ k, e: 'fx', d: 0, txt: 'est épuisé par sa Furie' }); continue; }
     if (me.stun) { me.stun = false; ev.push({ k, e: 'fx', d: 0, txt: 'est paralysé et ne peut pas attaquer' }); continue; }
     const spe = a.a === 'spe' && me.sp, hits = pas(me) === 'double' ? 2 : 1;
     if (spe) me.sp = false;
@@ -325,7 +325,7 @@ function resolve(S, acts, rnd = Math.random) {
       if (him.hp === 0 && pas(him) === 'haunt' && me.hp > 0) hurt(k, -15, 'Hantise');
     }
     me.used = true;
-    if (hits > 1) me.rest = true;
+    if (hits > 1) me.rest = 2;
   }
   // fin de tour : brûlure, poison, régénération, durées des sorts, énergie
   for (const k of ['A', 'B']) {
@@ -335,7 +335,7 @@ function resolve(S, acts, rnd = Math.random) {
       if (c.psn && c.hp > 0) hurt(k, -4 * c.psn, 'Venin');
       if (pas(c) === 'regen' && c.hp > 0 && c.hp < c.max) hurt(k, Math.max(1, Math.round(c.max * .04)), 'Régénération');
     }
-    for (const x of s.team) { if (x.boost) x.boost--; if (x.weak) x.weak--; }
+    for (const x of s.team) { if (x.boost) x.boost--; if (x.weak) x.weak--; if (x.rest) x.rest--; }
     s.en = Math.min(EN_MAX, s.en + 1 + (s.team.some(x => x.hp > 0 && pas(x) === 'energy') ? 1 : 0));
   }
   for (const k of ['A', 'B']) {
@@ -400,7 +400,7 @@ function drawFighters(S) {
   for (const [k, f, b, nm] of [[G.me, '#fMe', '#bMe', '#nMe'], [opp(), '#fOpp', '#bOpp', '#nOpp']]) {
     const s = S[k], c = s.team[s.act], r = c.hp / c.max;
     $(nm).innerHTML = `${k === G.me ? myName : G.oppName}<br><span class="en">${'◆'.repeat(s.en)}${'◇'.repeat(EN_MAX - s.en)}</span>`;
-    const st = [c.burn && '🔥 brûlé', c.psn && `☠️ ×${c.psn}`, c.stun && '💫 paralysé', c.rest && '😮‍💨 au repos', c.boost && '💪 renforcé', c.weak && '🌀 affaibli',
+    const st = [c.burn && '🔥 brûlé', c.psn && `☠️ ×${c.psn}`, c.stun && '💫 paralysé', c.rest && '😮‍💨 épuisé', c.boost && '💪 renforcé', c.weak && '🌀 affaibli',
       c.focus && '🎯 concentré', c.rage && `😤 +${c.rage * 12} %`, pas(c) === 'first' && !c.used && '⚡ prêt'].filter(Boolean).join(' · ');
     $(f).innerHTML = `<div class="ft-card">${cardHTML(POKEMON[c.id - 1], c.s === 2 ? 'anim' : !!c.s)}</div>
       <div class="hpbox"><b>${pname(c)}</b><div class="hp"><i class="${r < .25 ? 'low' : r < .5 ? 'mid' : ''}" style="width:${r * 100}%"></i></div><span>${c.hp} / ${c.max} PV</span>
@@ -413,10 +413,10 @@ function askAction() {
   const eff = m > 1 ? ' · <em class="up">super efficace</em>' : m < 1 ? ' · <em class="down">peu efficace</em>' : '';
   const acts = $('#acts');
   if (!acts) return;
-  const spells = Object.entries(SPELLS).map(([id, [e, n, cost, d]]) => `<button class="spell${G.spell === id ? ' on' : ''}" data-sp="${id}" ${s.en < cost ? 'disabled' : ''} title="${d}">${e} ${n}<small>${'◆'.repeat(cost)}</small></button>`).join('');
+  const spells = Object.entries(SPELLS).map(([id, [e, n, cost, d]]) => `<button class="spell${G.spell === id ? ' on' : ''}" data-sp="${id}" ${s.en < cost || (id === 'barrier' && c.rest) ? 'disabled' : ''} title="${d}">${e} ${n}<small>${'◆'.repeat(cost)}</small></button>`).join('');
   acts.innerHTML = `<div class="spells"><span class="sp-lbl">Sort (optionnel) · ⚡ ${s.en}/${EN_MAX}</span>${spells}</div><button class="act" data-a="atk">⚔️ Attaque<small>~${Math.round(c.atk * m)} dégâts${eff}</small></button>
     <button class="act sp" data-a="spe" ${c.sp ? '' : 'disabled'}>💥 Coup spécial<small>${c.sp ? `~${Math.round(c.atk * m * 1.8)} dégâts · une fois` : 'déjà utilisé'}</small></button>
-    <button class="act" data-a="grd" ${s.lastG ? 'disabled' : ''}>🛡️ Abri<small>${s.lastG ? 'pas deux fois de suite' : 'bloque toutes les attaques du tour'}</small></button>
+    <button class="act" data-a="grd" ${s.lastG || c.rest ? 'disabled' : ''}>🛡️ Abri<small>${c.rest ? 'épuisé par sa Furie' : s.lastG ? 'pas deux fois de suite' : 'bloque toutes les attaques du tour'}</small></button>
     <button class="act" data-a="swp" ${s.team.some((x, i) => i !== s.act && x.hp > 0) ? '' : 'disabled'}>🔄 Changer<small>envoyer une autre carte</small></button>`;
   acts.onclick = e => {
     const sp = e.target.closest('.spell');

@@ -1,23 +1,22 @@
 # Graph Report - PokeBooster  (2026-10-17)
 
 ## Corpus Check
-- 10 files · ~27,600 words
+- 10 files · ~28,420 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 22 file(s) not represented in the graph (top: .glb 21, .css 1)
 
 ## Summary
-- 167 nodes · 335 edges · 18 communities (14 shown, 4 thin omitted)
+- 171 nodes · 342 edges · 16 communities (12 shown, 4 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f230de51`
+- Built from commit: `2f5b0f76`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - play.js
-- joinRoom
 - app.js
 - data.js
 - deck
@@ -27,7 +26,6 @@
 - cardHTML
 - renderMarket
 - sfx.js
-- duelSetup
 - renderBook
 - museum.js
 - fx.js
@@ -61,15 +59,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (18 total, 4 thin omitted)
+## Communities (16 total, 4 thin omitted)
 
 ### Community 0 - "play.js"
-Cohesion: 0.14
-Nodes (16): BASE, G, inbox, mkSide(), net, netHost(), netJoin(), onMsg() (+8 more)
-
-### Community 1 - "joinRoom"
-Cohesion: 0.32
-Nodes (8): battleTeam(), endBattle(), errBox(), gameScreen(), joinRoom(), netClose(), quitGame(), vsTxt()
+Cohesion: 0.12
+Nodes (40): BASE, battle(), battleTeam(), duelReveal(), duelSetup(), duelWait(), endBattle(), errBox() (+32 more)
 
 ### Community 2 - "app.js"
 Cohesion: 0.20
@@ -92,8 +86,8 @@ Cohesion: 0.18
 Nodes (14): aurora(), birds(), bolt(), cloud(), cloudBank(), dots(), f1(), pines() (+6 more)
 
 ### Community 8 - "askAction"
-Cohesion: 0.27
-Nodes (12): askAction(), battle(), choose(), drawFighters(), mult(), opp(), passiveOf(), playRound() (+4 more)
+Cohesion: 0.36
+Nodes (10): askAction(), choose(), drawFighters(), mult(), opp(), pas(), passiveOf(), playRound() (+2 more)
 
 ### Community 9 - "cardHTML"
 Cohesion: 0.83
@@ -102,10 +96,6 @@ Nodes (4): art(), cardHTML(), pad(), pocketHTML()
 ### Community 10 - "renderMarket"
 Cohesion: 0.33
 Nodes (9): buy(), dupKeys(), flyCoin(), keyInfo(), priceOf(), renderMarket(), renderTop(), save() (+1 more)
-
-### Community 12 - "duelSetup"
-Cohesion: 0.60
-Nodes (10): duelReveal(), duelSetup(), duelWait(), hostRoom(), recv(), runDuel(), send(), stage() (+2 more)
 
 ### Community 13 - "renderBook"
 Cohesion: 0.80
@@ -125,9 +115,5 @@ Nodes (9): ELEV, load(), loader, models, renderer, scene, shot(), shots (+1 more
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `joinRoom()` connect `joinRoom` to `play.js`, `duelSetup`?**
-  _High betweenness centrality (0.001) - this node is a cross-community bridge._
 - **Should `play.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.13725490196078433 - nodes in this community are weakly interconnected._
-- **Why does `battleTeam()` connect `joinRoom` to `play.js`, `askAction`, `duelSetup`?**
-  _High betweenness centrality (0.001) - this node is a cross-community bridge._
+  _Cohesion score 0.11962833914053426 - nodes in this community are weakly interconnected._
