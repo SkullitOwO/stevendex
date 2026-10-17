@@ -125,7 +125,7 @@ Kokiyas|eau|C
 Crustabri|eau,glace|R
 Fantominus|spectre,poison|C
 Spectrum|spectre,poison|R
-Ectoplasme|spectre,poison|L
+Ectoplasma|spectre,poison|L
 Onix|roche,sol|R
 Soporifik|psy|C
 Hypnomade|psy|R

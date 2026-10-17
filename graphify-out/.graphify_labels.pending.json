@@ -1,13 +1,11 @@
 {
   "0": "play.js",
-  "1": "joinRoom",
   "2": "app.js",
   "3": "data.js",
   "4": "deck",
   "5": "renderShop",
   "6": "fanart.js",
   "7": "scenes.js",
-  "8": "askAction",
   "9": "cardHTML",
   "10": "renderMarket",
   "11": "sfx.js",

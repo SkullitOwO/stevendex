@@ -1,5 +1,5 @@
 const $ = s => document.querySelector(s);
-const SAVE = 'boosterdex-v1', FREE_MS = 5 * 60e3, PITY_M = 150, PITY_S = 15, SHINY = 0.012;
+const SAVE = 'boosterdex-v1', FREE_MS = 5 * 60e3, PITY_M = 150, PITY_S = 15, SHINY = 0.012, ANIM_P = 0.06;
 const RAR = Object.fromEntries(RARITIES.map(r => [r.key, r]));
 const RKEYS = RARITIES.map(r => r.key);
 
@@ -15,10 +15,13 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 const art = (p, shiny) =>
   `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${shiny ? 'shiny/' : ''}${p.id}.png`;
 const poolOf = b => POKEMON.filter(p => !b.types || p.types.some(t => b.types.includes(t)));
-const owns = p => (state.owned[p.id] || 0) + (state.owned[p.id + 's'] || 0);
+const owns = p => (state.owned[p.id] || 0) + (state.owned[p.id + 's'] || 0) + (state.owned[p.id + 'a'] || 0);
+// Variante d'une carte : false (normale), true (dorée) ou 'anim' (dorée animée, encore plus rare) ; clé de collection id, id+'s' ou id+'a'
+const keyOf = c => c.p.id + (c.shiny === 'anim' ? 'a' : c.shiny ? 's' : '');
+const vRank = s => (s === 'anim' ? 2 : s ? 1 : 0);
 // Clé de collection : n° Pokédex, suivi de « s » pour la version dorée
-const keyInfo = k => ({ p: POKEMON[parseInt(k) - 1], shiny: k.endsWith('s') });
-const priceOf = k => { const { p, shiny } = keyInfo(k); return RAR[p.r].dup * (shiny ? 3 : 1); };
+const keyInfo = k => ({ p: POKEMON[parseInt(k) - 1], shiny: k.endsWith('a') ? 'anim' : k.endsWith('s') });
+const priceOf = k => { const { p, shiny } = keyInfo(k); return RAR[p.r].dup * [1, 3, 12][vRank(shiny)]; };
 
 // Probabilité de chaque rareté pour une carte ; une rareté absente du booster cède son poids à la suivante en dessous.
 function dist(pool, guar) {
@@ -58,14 +61,15 @@ function openPack(b) {
   const rars = [roll(n), roll(n), roll(n), roll(n), n.M && state.pityM >= PITY_M ? 'M' : roll(g)];
   const cards = rars.map(r => ({ p: draw(pool, r, taken), shiny: Math.random() < SHINY }));
   if (state.pityS >= PITY_S && !cards.some(c => c.shiny)) pick(cards).shiny = true;
+  for (const c of cards) if (window.ANIM?.[c.p.id] && Math.random() < ANIM_P) c.shiny = 'anim';
   if (cards.some(c => c.p.r === 'M')) state.pityM = 0;
   if (cards.some(c => c.shiny)) state.pityS = 0;
   for (const c of cards) {
-    const k = c.p.id + (c.shiny ? 's' : '');
+    const k = keyOf(c);
     c.isNew = !state.owned[k];
     state.owned[k] = (state.owned[k] || 0) + 1;
   }
-  cards.sort((a, b) => RKEYS.indexOf(a.p.r) - RKEYS.indexOf(b.p.r) || a.shiny - b.shiny);
+  cards.sort((a, b) => RKEYS.indexOf(a.p.r) - RKEYS.indexOf(b.p.r) || vRank(a.shiny) - vRank(b.shiny));
   return { cards };
 }
 
@@ -83,14 +87,14 @@ function packHTML(b) {
 }
 // Carte « full art » : fanart (ou décor du type + artwork officiel), nom en bas.
 function cardHTML(p, shiny = false, isNew = false) {
-  const R = RAR[p.r], fan = window.FANART?.[p.id];
+  const R = RAR[p.r], anim = shiny === 'anim', fan = anim ? window.ANIM[p.id] : window.FANART?.[p.id];
   const sc = fan ? null : scene(p.types[0], p.id);
   const inner = fan ? `<img class="full" src="${fan}" alt="${p.name}" loading="lazy" onerror="this.onerror=null;this.className='poke';this.src='${art(p, shiny)}'">`
     : `${sc.back}<img class="poke" src="${art(p, shiny)}" alt="${p.name}" loading="lazy">${sc.front}`;
-  return `<div class="card r-${p.r}${shiny ? ' shiny' : ''}" style="--rc:${R.color}">
+  return `<div class="card r-${p.r}${shiny ? ' shiny' : ''}${anim ? ' anim' : ''}" style="--rc:${R.color}">
     <div class="frame" style="background:${sc ? sc.bg : '#222'}">${inner}
       <div class="types">${p.types.map(t => `<i style="--t:${TYPES[t].color}">${TYPES[t].name}</i>`).join('')}</div>
-      <div class="sym">${shiny ? '✦' : R.sym}</div>
+      <div class="sym">${anim ? '✦ Animée' : shiny ? '✦' : R.sym}</div>
       <div class="label"><b>${p.name}</b><span>N° ${pad(p.id)}</span></div>
     </div>${isNew ? '<div class="new">Nouveau !</div>' : ''}<div class="holo"></div></div>`;
 }
@@ -151,7 +155,7 @@ function burst(host, color, n) {
   }
 }
 const epicOf = c => c.shiny || 'LM'.includes(c.p.r);
-const LABEL = c => c.shiny ? '✦ Carte dorée ✦' : c.p.r === 'M' ? '👑 Mythique !' : '★ Légendaire !';
+const LABEL = c => c.shiny === 'anim' ? '✨ Dorée animée ✨' : c.shiny ? '✦ Carte dorée ✦' : c.p.r === 'M' ? '👑 Mythique !' : '★ Légendaire !';
 const rcOf = c => c.shiny ? '#ffd76a' : RAR[c.p.r].color;
 
 const packBackHTML = b => `<div class="pk-back" style="--c:${b.color}"><div class="crimp"></div><div class="crimp bot"></div>
@@ -280,7 +284,7 @@ function deck(b, res, skipped) {
         sfx.epic();
         FX.explode(f, c.p.types[0], col, 1.6);
         deckEl.insertAdjacentHTML('beforeend', `<div class="banner" style="--rc:${col}">${[...LABEL(c)].map((ch, n) => `<span style="--i:${n}">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('')}</div>
-          <div class="reveal-name" style="--rc:${col}">${c.p.name}<small>${RAR[c.p.r].name}${c.shiny ? ' · dorée' : ''}</small></div>`);
+          <div class="reveal-name" style="--rc:${col}">${c.p.name}<small>${RAR[c.p.r].name}${c.shiny === 'anim' ? ' · dorée animée' : c.shiny ? ' · dorée' : ''}</small></div>`);
         await wait(1100);
         o.classList.remove('quake');
       } else {
@@ -337,9 +341,9 @@ const PER = 9, PAGES = Math.ceil(POKEMON.length / PER);
 let page = 0;
 const perView = () => innerWidth < 760 ? 1 : 2;
 function pocketHTML(p) {
-  const n = state.owned[p.id] || 0, s = state.owned[p.id + 's'] || 0;
-  return n || s
-    ? `<div class="pocket has" data-id="${p.id}" data-s="${s ? 1 : 0}">${cardHTML(p, !!s)}${n + s > 1 ? `<b class="cnt">×${n + s}</b>` : ''}</div>`
+  const n = state.owned[p.id] || 0, s = state.owned[p.id + 's'] || 0, a = state.owned[p.id + 'a'] || 0, best = a ? 'anim' : !!s;
+  return n || s || a
+    ? `<div class="pocket has" data-id="${p.id}" data-s="${best === 'anim' ? 'a' : best ? 1 : 0}">${cardHTML(p, best)}${n + s + a > 1 ? `<b class="cnt">×${n + s + a}</b>` : ''}</div>`
     : `<div class="pocket"><img class="sil" src="${art(p)}" loading="lazy" alt=""><span>N° ${pad(p.id)}</span></div>`;
 }
 function pageHTML(i) {
@@ -484,11 +488,11 @@ document.addEventListener('keydown', e => {
 $('#binder').onclick = e => {
   const c = e.target.closest('.pocket.has');
   if (!c || turning) return;
-  const p = POKEMON[c.dataset.id - 1], n = state.owned[p.id] || 0, s = state.owned[p.id + 's'] || 0, o = $('#overlay');
+  const p = POKEMON[c.dataset.id - 1], n = state.owned[p.id] || 0, s = state.owned[p.id + 's'] || 0, a = state.owned[p.id + 'a'] || 0, o = $('#overlay');
   sfx.pop();
   o.hidden = false; o.className = 'overlay zoomed';
-  o.innerHTML = `<div class="zoom">${cardHTML(p, c.dataset.s === '1')}
-    <p>${p.name} · ${RAR[p.r].name}${n ? ` · ×${n}` : ''}${s ? ` · ✦ dorée ×${s}` : ''}</p></div>`;
+  o.innerHTML = `<div class="zoom">${cardHTML(p, c.dataset.s === 'a' ? 'anim' : c.dataset.s === '1')}
+    <p>${p.name} · ${RAR[p.r].name}${n ? ` · ×${n}` : ''}${s ? ` · ✦ dorée ×${s}` : ''}${a ? ` · ✨ animée ×${a}` : ''}</p></div>`;
   o.onclick = ev => { if (!ev.target.closest('.zoom .card')) closeOverlay(); };
 };
 addEventListener('resize', () => !turning && $('#book').classList.contains('on') && renderBook());

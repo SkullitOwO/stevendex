@@ -86,8 +86,8 @@ async function joinRoom(code) {
 }
 
 /* ---------- Duel de boosters ---------- */
-const scoreOf = c => PTS[c.p.r] * (c.shiny ? 2 : 1);
-const RULES = 'Barème : Commune 1 · Rare 3 · Épique 8 · Légendaire 20 · Mythique 50 · dorée ×2';
+const scoreOf = c => PTS[c.p.r] * [1, 2, 4][vRank(c.shiny)];
+const RULES = 'Barème : Commune 1 · Rare 3 · Épique 8 · Légendaire 20 · Mythique 50 · dorée ×2 · animée ×4';
 
 function duelSetup() {
   let bi = sel, stake = 100;
@@ -136,9 +136,9 @@ async function runDuel(bi, stake) {
   save(); renderTop(); renderShop();
   let theirs;
   {
-    send({ t: 'pack', cards: mine.map(c => [c.p.id, c.shiny ? 1 : 0]) });
+    send({ t: 'pack', cards: mine.map(c => [c.p.id, vRank(c.shiny)]) });
     stage(waitBox(`${G.oppName} ouvre son booster…`));
-    theirs = (await recv('pack')).cards.map(([id, s]) => ({ p: POKEMON[id - 1], shiny: !!s }));
+    theirs = (await recv('pack')).cards.map(([id, s]) => ({ p: POKEMON[id - 1], shiny: s === 2 ? 'anim' : !!s }));
   }
   duelReveal(stake, mine, theirs);
 }
@@ -185,7 +185,7 @@ async function duelReveal(stake, mine, theirs) {
 // Stats tirées de la rareté, avec une variation fixe par Pokémon ; la version dorée a +10 %.
 const BASE = { C: [60, 20, 40], R: [80, 27, 50], E: [100, 34, 60], L: [125, 42, 70], M: [150, 50, 80] };
 function stats(p, shiny) {
-  const [hp, atk, spd] = BASE[p.r], h = (p.id * 2654435761 >>> 0) % 1000 / 1000, m = shiny ? 1.1 : 1;
+  const [hp, atk, spd] = BASE[p.r], h = (p.id * 2654435761 >>> 0) % 1000 / 1000, m = [1, 1.1, 1.25][vRank(shiny)];
   return { hp: Math.round(hp * (.9 + h * .2) * m), atk: Math.round(atk * (1.1 - h * .2) * m), spd: Math.round(spd * (.85 + (p.id * 7919 % 100) / 100 * .3)) };
 }
 const STRONG = { feu: ['plante', 'insecte', 'glace', 'acier'], eau: ['feu', 'sol', 'roche'], plante: ['eau', 'sol', 'roche'], electrik: ['eau', 'vol'],
@@ -203,7 +203,7 @@ function mult(atkId, defId) {
 }
 console.assert(mult(6, 1) === 2 && mult(1, 6) === .5 && mult(25, 7) === 2, 'table des types');
 
-const mkSide = team => ({ team: team.map(([id, s]) => { const st = stats(POKEMON[id - 1], !!s); return { id, s, hp: st.hp, max: st.hp, atk: st.atk, spd: st.spd, sp: true }; }), act: 0, lastG: false });
+const mkSide = team => ({ team: team.map(([id, s]) => { const st = stats(POKEMON[id - 1], s === 2 ? 'anim' : !!s); return { id, s, hp: st.hp, max: st.hp, atk: st.atk, spd: st.spd, sp: true }; }), act: 0, lastG: false });
 
 // Un tour : changements, puis protections, puis attaques par ordre de vitesse. L'hôte (ou le jeu solo) fait foi.
 function resolve(S, acts, rnd = Math.random) {
@@ -265,7 +265,7 @@ function battleTeam() {
   draw();
 }
 async function startTeam(keys) {
-  const mine = keys.map(k => [parseInt(k), k.endsWith('s') ? 1 : 0]);
+  const mine = keys.map(k => [parseInt(k), vRank(keyInfo(k).shiny)]);
   send({ t: 'team', team: mine });
   stage(waitBox(`${G.oppName} choisit son équipe…`));
   if (net.host) {
@@ -291,9 +291,9 @@ function battle(S, me) {
 function drawFighters(S) {
   for (const [k, f, b] of [[G.me, '#fMe', '#bMe'], [opp(), '#fOpp', '#bOpp']]) {
     const s = S[k], c = s.team[s.act], r = c.hp / c.max;
-    $(f).innerHTML = `<div class="ft-card">${cardHTML(POKEMON[c.id - 1], !!c.s)}</div>
+    $(f).innerHTML = `<div class="ft-card">${cardHTML(POKEMON[c.id - 1], c.s === 2 ? 'anim' : !!c.s)}</div>
       <div class="hpbox"><b>${pname(c)}</b><div class="hp"><i class="${r < .25 ? 'low' : r < .5 ? 'mid' : ''}" style="width:${r * 100}%"></i></div><span>${c.hp} / ${c.max} PV</span></div>`;
-    $(b).innerHTML = s.team.map((x, i) => `<div class="bn${i === s.act ? ' act' : ''}${x.hp ? '' : ' ko'}">${cardHTML(POKEMON[x.id - 1], !!x.s)}</div>`).join('');
+    $(b).innerHTML = s.team.map((x, i) => `<div class="bn${i === s.act ? ' act' : ''}${x.hp ? '' : ' ko'}">${cardHTML(POKEMON[x.id - 1], x.s === 2 ? 'anim' : !!x.s)}</div>`).join('');
   }
 }
 function askAction() {

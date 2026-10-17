@@ -1,6 +1,15 @@
 // Un fanart par Pokémon, trouvé sur Pinterest et affiché depuis i.pinimg.com.
 // Pour en changer : remplace le nom de fichier par une autre image Pinterest, une URL complète ou 'art/xxx.png'.
 const PIN = h => h.includes('/') ? h : `https://i.pinimg.com/736x/${h.slice(0, 2)}/${h.slice(2, 4)}/${h.slice(4, 6)}/${h}`;
+// Cartes dorées animées (ultra rares) : GIF choisis sur Tenor.
+window.ANIM = {
+  25: 'https://media.tenor.com/cI9P3mQTmiIAAAAC/pikachu.gif',
+  94: 'https://media.tenor.com/TuV4NlPM1EIAAAAC/zetrystan-gengar.gif',
+  133: 'https://media.tenor.com/aEq0C3QVxrQAAAAC/eevee-no-thoughts.gif',
+  145: 'https://media.tenor.com/pxsRN94W040AAAAC/electricity-zapdos.gif',
+  150: 'https://media.tenor.com/gmIjPoFaKEAAAAAC/mewtwo-pokemon.gif',
+  151: 'https://media.tenor.com/HY705fid3JIAAAAC/pokemon-mew.gif',
+};
 window.FANART = Object.fromEntries(Object.entries({
   1: "4de6b4a98c13044313c08509c77dab34.jpg",
   2: "af18296883d64367c3ba5399d0c0b149.jpg",

@@ -510,3 +510,10 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 @keyframes pageShade { to { opacity: 0; } }
 .turning .face .page { background: #fbf8f1; }
 .turning .pocket.has::after { display: none; }
+
+/* Carte dorée animée : cadre or qui ondule, reflet arc-en-ciel permanent */
+.card.anim { background: linear-gradient(120deg, #fff6c2, #ffd700 20%, #fff 35%, #ffb300 50%, #fff3b0 65%, #ffd700 80%, #fff6c2) 0 0 / 300% 300%; animation: goldFlow 3s linear infinite; box-shadow: 0 0 0 2px #ffd76a, 0 0 26px #ffd76aaa, 0 8px 22px #1d2c5e55; }
+@keyframes goldFlow { to { background-position: 300% 300%; } }
+.card.anim .holo { opacity: .55; background: linear-gradient(115deg, transparent 20%, #ff5ec455 35%, #5ef0ff55 45%, #fff36655 55%, transparent 70%) 0 0 / 250% 250%; animation: holoFlow 2.4s linear infinite; }
+@keyframes holoFlow { to { background-position: 250% 250%; } }
+.card.anim .sym { color: #ffd76a; }
