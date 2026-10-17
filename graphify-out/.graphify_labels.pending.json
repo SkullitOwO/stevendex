@@ -1,6 +1,6 @@
 {
   "0": "play.js",
-  "1": "joinRoom",
+  "1": "battleTeam",
   "2": "app.js",
   "3": "data.js",
   "4": "deck",
@@ -13,5 +13,6 @@
   "11": "sfx.js",
   "12": "duelSetup",
   "13": "renderBook",
+  "14": "museum.js",
   "15": "fx.js"
 }

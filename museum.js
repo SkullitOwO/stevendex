@@ -1,13 +1,25 @@
-/* ---------- Musée : tes plus belles cartes aux murs, des décos au sol, visitable par lien ---------- */
+/* ---------- Musée : une vraie salle en perspective, tes cartes aux murs, visitable par lien ---------- */
 const DECOS = {
   plante: ['🪴', 'Plante verte', 100], fleurs: ['🌸', 'Pot de fleurs', 120], tournesol: ['🌻', 'Tournesols', 150], cactus: ['🌵', 'Cactus', 80],
   bambou: ['🎍', 'Bambou', 140], banc: ['🛋️', 'Banquette', 250], vase: ['🏺', 'Vase ancien', 300], bougie: ['🕯️', 'Chandelier', 180],
   peluche: ['🧸', 'Peluche', 160], statue: ['🗿', 'Statue', 400], fontaine: ['⛲', 'Fontaine', 600], trophee: ['🏆', 'Trophée', 800],
 };
-const THEMES = { bois: 'Bois chaleureux', marbre: 'Marbre blanc', nuit: 'Nuit étoilée', jungle: 'Jungle' };
-const WALL = 6, FLOOR = 6;
-state.museum = Object.assign({ wall: Array(WALL).fill(null), floor: Array(FLOOR).fill(null), theme: 'bois', inv: {} }, state.museum);
+const THEMES = { galerie: 'Galerie lumineuse', classique: 'Salon classique', nuit: 'Nuit étoilée', bois: 'Bois chaleureux' };
+// Accrochage « façon galerie » : 7 cadres au fond, 2 sur chaque mur latéral, et la pièce maîtresse sur le piédestal (dernier emplacement).
+// l, t, w en % du mur ; la hauteur suit le format des cartes.
+const SLOTS = [
+  { m: 'back', l: 8, t: 14, w: 10 }, { m: 'back', l: 8, t: 46, w: 10 }, { m: 'back', l: 22, t: 22, w: 13 }, { m: 'back', l: 41, t: 10, w: 18 },
+  { m: 'back', l: 65, t: 22, w: 13 }, { m: 'back', l: 82, t: 14, w: 10 }, { m: 'back', l: 82, t: 46, w: 10 },
+  { m: 'left', l: 22, t: 20, w: 30 }, { m: 'left', l: 62, t: 26, w: 24 }, { m: 'right', l: 48, t: 20, w: 30 }, { m: 'right', l: 14, t: 26, w: 24 },
+  { m: 'star' },
+];
+const WALL = SLOTS.length, FLOOR = 4;
+const SPOTS_FLOOR = [{ x: 9, z: .16 }, { x: 91, z: .16 }, { x: 19, z: .8 }, { x: 81, z: .8 }]; // z : fraction de la profondeur
+state.museum = Object.assign({ wall: [], floor: [], theme: 'galerie', inv: {} }, state.museum);
 const M = state.museum;
+M.wall = Array.from({ length: WALL }, (_, i) => M.wall[i] ?? null);
+M.floor = Array.from({ length: FLOOR }, (_, i) => M.floor[i] ?? null);
+if (!THEMES[M.theme]) M.theme = 'galerie';
 let editing = false;
 const esc = s => String(s).replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
 const validKey = k => typeof k === 'string' && /^\d{1,3}[sa]?$/.test(k) && +parseInt(k) >= 1 && +parseInt(k) <= POKEMON.length;
@@ -16,16 +28,29 @@ const validKey = k => typeof k === 'string' && /^\d{1,3}[sa]?$/.test(k) && +pars
 const cleanWall = () => { M.wall = M.wall.map(k => (k && state.owned[k] ? k : null)); };
 const placed = id => M.floor.filter(d => d === id).length;
 
+function frameHTML(k, i, s, edit) {
+  const info = k && keyInfo(k), mark = info ? (info.shiny === 'anim' ? ' ✨' : info.shiny ? ' ✦' : '') : '';
+  return `<div class="mf${k ? ' filled' : ''}" data-i="${i}" style="left:${s.l}%;top:${s.t}%;width:${s.w}%">
+    <div class="fr">${k ? cardHTML(info.p, info.shiny) : edit ? '<span class="add">+</span>' : ''}</div>
+    ${k && s.m === 'back' ? `<div class="cartel">${info.p.name}${mark}</div>` : ''}</div>`;
+}
 function roomHTML(m, edit) {
-  const frames = m.wall.map((k, i) => {
-    const info = k && keyInfo(k);
-    return `<div class="mframe${k ? ' full' : ''}" data-i="${i}"><span class="spot"></span>
-      <div class="mframe-in">${k ? cardHTML(info.p, info.shiny) : edit ? '<span class="add">+</span>' : ''}</div>
-      ${k ? `<div class="plaque">${info.p.name}${info.shiny === 'anim' ? ' ✨' : info.shiny ? ' ✦' : ''}</div>` : ''}</div>`;
-  }).join('');
-  const decos = m.floor.map((d, i) => `<div class="mdeco${d ? ' full' : ''}" data-i="${i}">${d ? `<span>${DECOS[d][0]}</span>` : edit ? '<em>+</em>' : ''}</div>`).join('');
-  return `<div class="room t-${m.theme}${edit ? ' editing' : ''}"><div class="wall"><div class="molding"></div><div class="frames">${frames}</div></div>
-    <div class="baseboard"></div><div class="floor"><div class="decos">${decos}</div></div></div>`;
+  const on = w => SLOTS.map((s, i) => (s.m === w ? frameHTML(m.wall[i], i, s, edit) : '')).join('');
+  const star = m.wall[WALL - 1], si = star && keyInfo(star);
+  const decos = m.floor.map((d, i) => { const p = SPOTS_FLOOR[i]; return `<div class="bb mdeco${d ? ' filled' : ''}" data-i="${i}" style="left:${p.x}%;--z:${p.z}">
+    ${d ? `<span>${DECOS[d][0]}</span>` : edit ? '<em>+</em>' : ''}</div>`; }).join('');
+  return `<div class="mroom t-${m.theme}${edit ? ' editing' : ''}"><div class="scene"><div class="box">
+      <div class="w back"><div class="lights"></div>${on('back')}</div>
+      <div class="w left">${on('left')}</div><div class="w right">${on('right')}</div>
+      <div class="w floor"></div><div class="w ceil"><div class="track"></div></div>
+      ${[20, 35, 50, 65, 80].map(x => `<div class="bb lamp" style="left:${x}%;--z:.55"></div>`).join('')}
+      <div class="bb pedestal" data-i="${WALL - 1}" style="left:50%;--z:.86">
+        <div class="ped-card${star ? ' filled' : ''}">${star ? cardHTML(si.p, si.shiny) : edit ? '<span class="add">+</span>' : ''}</div><div class="ped-col"></div></div>
+      <div class="bb rope" style="left:50%;--z:.62"><svg viewBox="0 0 100 22" preserveAspectRatio="none">
+        <path d="M4 6 Q 18 16 32 6 Q 50 16 68 6 Q 82 16 96 6" fill="none" stroke="#c0182c" stroke-width="1.4"/></svg>
+        ${[4, 32, 68, 96].map(x => `<i style="left:${x}%"></i>`).join('')}</div>
+      ${decos}
+    </div></div></div>`;
 }
 
 function renderMuseum() {
@@ -102,7 +127,7 @@ function visitFromHash() {
   const room = {
     wall: Array.from({ length: WALL }, (_, i) => (validKey(d.w?.[i]) ? d.w[i] : null)),
     floor: Array.from({ length: FLOOR }, (_, i) => (DECOS[d.f?.[i]] ? d.f[i] : null)),
-    theme: THEMES[d.t] ? d.t : 'bois',
+    theme: THEMES[d.t] ? d.t : 'galerie',
   };
   const o = $('#overlay');
   o.hidden = false; o.className = 'overlay visit';
@@ -117,7 +142,7 @@ $('#muEdit').onclick = () => { editing = !editing; sfx.pop(); renderMuseum(); };
 $('#muShare').onclick = shareLink;
 $('#museumRoom').onclick = e => {
   if (!editing) return;
-  const f = e.target.closest('.mframe'), d = e.target.closest('.mdeco');
+  const f = e.target.closest('.mf, .pedestal'), d = e.target.closest('.mdeco');
   if (f) pickCard(+f.dataset.i);
   else if (d) pickDeco(+d.dataset.i);
 };

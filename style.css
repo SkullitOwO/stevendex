@@ -556,42 +556,6 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .mu-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
 .mu-bar .btn { font-size: 16px; padding: 10px 20px; }
 .mu-bar select { font: 700 15px 'Poppins', sans-serif; border-radius: 99px; border: 2px solid var(--line); padding: 9px 16px; background: #fff; color: var(--navy); }
-.room { --wall: #6b3e1f; position: relative; width: min(1120px, 100%); border-radius: 22px; overflow: hidden; box-shadow: 0 24px 50px #1d2c5e44, 0 0 0 6px #fff; }
-.wall { position: relative; padding: 70px 4% 34px; }
-.molding { position: absolute; left: 0; right: 0; top: 0; height: 26px; background: linear-gradient(#0003, transparent), linear-gradient(#ffffff26 0 3px, transparent 3px 20px, #00000033 20px); }
-.frames { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3%; align-items: end; }
-.mframe { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.mframe .spot { position: absolute; left: 50%; top: -70px; width: 180%; height: 130%; transform: translateX(-50%); pointer-events: none;
-  background: radial-gradient(ellipse 45% 70% at 50% 0, #fff6d6aa, transparent 70%); mix-blend-mode: screen; opacity: 0; transition: opacity .4s; }
-.mframe.full .spot { opacity: 1; }
-.mframe-in { position: relative; width: 100%; aspect-ratio: 63 / 88; padding: 9%; border-radius: 4px;
-  background: linear-gradient(135deg, #f7d77a, #a8781c 30%, #ffe9a6 50%, #8a5e12 75%, #e9c060); box-shadow: inset 0 0 0 3px #6d4a0e, inset 0 0 0 7px #f3d58a55, 0 14px 22px #0007; }
-.mframe:not(.full) .mframe-in { background: #0000001a; box-shadow: inset 0 0 0 3px #ffffff33; display: grid; place-items: center; }
-.mframe-in .card { box-shadow: 0 0 0 2px #3d2a07; }
-.plaque { font: 800 11px 'Poppins', sans-serif; color: #3b2a07; background: linear-gradient(#f3d98c, #c49a3a); padding: 3px 10px; border-radius: 3px; box-shadow: 0 2px 4px #0006; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.add, .mdeco em { font: 800 34px 'Poppins', sans-serif; font-style: normal; color: #ffffffaa; }
-.baseboard { height: 18px; background: linear-gradient(#3a2412, #24160a); box-shadow: 0 -2px 0 #ffffff22; }
-.floor { position: relative; height: 150px; background: linear-gradient(#0005, transparent 45%), var(--floor); }
-.decos { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); height: 100%; padding: 0 4%; align-items: center; }
-.mdeco { position: relative; display: grid; place-items: center; height: 100%; }
-.mdeco span { font-size: clamp(38px, 6vw, 76px); line-height: 1; filter: drop-shadow(0 10px 6px #0006); transition: transform .2s; }
-.mdeco span:hover { transform: translateY(-4px) scale(1.06); }
-.mdeco.full::after { content: ''; position: absolute; bottom: 22%; width: 50%; height: 10px; border-radius: 50%; background: #0005; filter: blur(4px); z-index: -1; }
-.room.editing .mframe, .room.editing .mdeco { cursor: pointer; }
-.room.editing .mframe:hover .mframe-in, .room.editing .mdeco:hover { outline: 3px dashed #ffcb05; outline-offset: 4px; border-radius: 6px; }
-.room.editing .mdeco:not(.full) { margin: 18px 10%; border: 2px dashed #ffffff66; border-radius: 12px; height: auto; min-height: 70px; }
-/* Ambiances */
-.t-bois .wall { background: linear-gradient(#0000 60%, #0003), repeating-linear-gradient(90deg, #6b3e1f 0 58px, #5a3318 58px 61px, #74431f 61px 120px, #5a3318 120px 123px); }
-.t-bois { --floor: repeating-linear-gradient(90deg, #a76d3d 0 90px, #8f5b31 90px 93px), linear-gradient(#c58a52, #7a4a24); }
-.t-marbre .wall { background: linear-gradient(115deg, transparent 40%, #00000010 42%, transparent 44%), linear-gradient(70deg, transparent 60%, #00000014 61%, transparent 63%), linear-gradient(#fbf8f2, #e9e2d6); }
-.t-marbre { --floor: conic-gradient(#1f1f24 25%, #f2efe8 0 50%, #1f1f24 0 75%, #f2efe8 0) 0 0 / 90px 90px; }
-.t-marbre .molding { background: linear-gradient(#c9b48a, #e9d9b1 40%, #a88f5c); }
-.t-marbre .baseboard { background: linear-gradient(#cfc6b4, #a59a85); }
-.t-nuit .wall { background: radial-gradient(#ffffffcc 1px, transparent 1.5px) 0 0 / 46px 46px, radial-gradient(#ffffff88 1px, transparent 1.5px) 23px 17px / 61px 61px, linear-gradient(#0b1033, #24205a); }
-.t-nuit { --floor: radial-gradient(#ffffff10 2px, transparent 3px) 0 0 / 24px 24px, linear-gradient(#3b2766, #1d1240); }
-.t-nuit .plaque { background: linear-gradient(#e4e8ff, #9aa4d6); }
-.t-jungle .wall { background: radial-gradient(ellipse 18px 9px at 20px 20px, #2f7d3a 60%, transparent 62%) 0 0 / 70px 70px, radial-gradient(ellipse 18px 9px at 55px 50px, #3f9a48 60%, transparent 62%) 0 0 / 70px 70px, linear-gradient(#1f5a2c, #174222); }
-.t-jungle { --floor: repeating-linear-gradient(90deg, #8a6a3a 0 70px, #74572f 70px 73px), linear-gradient(#9a7a45, #6a4f2a); }
 .deco-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; width: 100%; }
 .dc { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; border-radius: 16px; background: #f2f7fd; font: 700 13px 'Poppins', sans-serif; color: var(--navy); transition: transform .1s; }
 .dc:hover:not(:disabled) { transform: translateY(-2px); background: #fff6d6; }
@@ -605,10 +569,64 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .visit-head .btn { font-size: 15px; padding: 9px 18px; }
 .toast { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 100; background: #111113; color: #fff; font: 700 15px 'Poppins', sans-serif; padding: 12px 22px; border-radius: 99px; box-shadow: 0 10px 30px #0006; animation: deal .35s cubic-bezier(.2, 1.4, .4, 1); }
 @media (max-width: 760px) {
-  .frames { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 40px; }
-  .decos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .floor { height: 220px; }
-  .wall { padding-top: 60px; }
 }
+
+/* Salle de musée en perspective : 5 faces (fond, côtés, sol, plafond) et des objets debout sur le sol */
 #museumRoom { width: min(1120px, 100%); }
-#museumRoom .room { width: 100%; }
+.mroom { --D: 46cqw; position: relative; width: 100%; aspect-ratio: 16 / 10; container-type: size; border-radius: 22px; overflow: hidden; background: var(--ceil);
+  box-shadow: 0 24px 50px #1d2c5e44, 0 0 0 6px #fff; }
+.scene { position: absolute; inset: 0; perspective: 80cqw; perspective-origin: 50% 40%; }
+.box { position: absolute; inset: 0; transform-style: preserve-3d; }
+.w { position: absolute; }
+.w.back { inset: 0; transform: translateZ(calc(-1 * var(--D))); background: var(--wall); }
+.w.left { left: 0; top: 0; width: var(--D); height: 100%; transform-origin: left center; transform: rotateY(90deg); background: var(--wall2); }
+.w.right { right: 0; top: 0; width: var(--D); height: 100%; transform-origin: right center; transform: rotateY(-90deg); background: var(--wall2); }
+.w.floor { left: 0; bottom: 0; width: 100%; height: var(--D); transform-origin: bottom center; transform: rotateX(90deg); background: var(--floor); }
+.w.ceil { left: 0; top: 0; width: 100%; height: var(--D); transform-origin: top center; transform: rotateX(-90deg); background: var(--ceil); }
+.track { position: absolute; left: 14%; right: 14%; top: 48%; height: 1.4cqw; border-radius: 1cqw; background: #2b2f38; }
+.lights { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
+  background: radial-gradient(ellipse 9% 55% at 13% 0, #fff7d9aa, transparent 70%), radial-gradient(ellipse 9% 55% at 29% 0, #fff7d9aa, transparent 70%),
+    radial-gradient(ellipse 11% 70% at 50% 0, #fff7d9cc, transparent 70%), radial-gradient(ellipse 9% 55% at 71% 0, #fff7d9aa, transparent 70%),
+    radial-gradient(ellipse 9% 55% at 87% 0, #fff7d9aa, transparent 70%); }
+/* Cadres */
+.mf { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 1.2cqw; }
+.fr { position: relative; width: 100%; aspect-ratio: 63 / 88; padding: 8%; background: var(--mat, #fff); border: var(--fborder); box-shadow: 0 1.2cqw 1.8cqw #0005; display: grid; place-items: center; }
+.mf:not(.filled) .fr { background: #00000012; border-style: dashed; border-color: #0003; box-shadow: none; }
+.fr .card { box-shadow: 0 0 0 1px #0004; }
+.cartel { font: 800 1.05cqw 'Poppins', sans-serif; color: #333; background: #fff; padding: .25cqw .8cqw; border-radius: .3cqw; box-shadow: 0 .3cqw .6cqw #0003; white-space: nowrap; max-width: 140%; overflow: hidden; text-overflow: ellipsis; }
+.add { font: 800 4cqw 'Poppins', sans-serif; color: #0004; }
+/* Objets debout sur le sol (toujours face au visiteur) */
+.bb { position: absolute; bottom: 0; transform-origin: bottom center; transform: translateX(-50%) translateZ(calc(var(--z) * -1 * var(--D))); }
+.lamp { top: 0; bottom: auto; transform-origin: top center; width: 2.4cqw; height: 3.2cqw; border-radius: 0 0 1.4cqw 1.4cqw; background: linear-gradient(90deg, #1b1e25, #3b404c 50%, #1b1e25); }
+.lamp::before { content: ''; position: absolute; left: 50%; top: -6cqw; width: .4cqw; height: 6cqw; background: #2b2f38; transform: translateX(-50%); }
+.lamp::after { content: ''; position: absolute; left: 50%; top: 100%; width: 20cqw; height: 46cqh; transform: translateX(-50%); pointer-events: none;
+  background: linear-gradient(#fff6d24d, transparent 85%); clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); }
+.pedestal { display: flex; flex-direction: column; align-items: center; }
+.ped-card { width: 8.5cqw; aspect-ratio: 63 / 88; margin-bottom: .8cqw; display: grid; place-items: center; filter: drop-shadow(0 1cqw 1cqw #0005); }
+.ped-card:not(.filled) { border: .25cqw dashed #0003; border-radius: .6cqw; }
+.ped-col { width: 13cqw; height: 15cqw; border-radius: .4cqw; background: linear-gradient(90deg, #dfe3ea, #fff 40%, #cfd5de); box-shadow: inset 0 1.4cqw 0 #f6f7f9, inset 0 1.6cqw 0 #cfd5de, 0 1.4cqw 2cqw #0003; }
+.rope { width: 52cqw; height: 9cqw; }
+.rope svg { position: absolute; left: 0; top: 0; width: 100%; height: 55%; overflow: visible; filter: drop-shadow(0 .3cqw .3cqw #0004); }
+.rope i { position: absolute; bottom: 0; width: 1cqw; height: 8cqw; transform: translateX(-50%); border-radius: .3cqw; background: linear-gradient(90deg, #a77a12, #ffe08a 45%, #b8860b); }
+.rope i::before { content: ''; position: absolute; left: 50%; top: -1cqw; width: 1.8cqw; height: 1.8cqw; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff3c0, #e0aa2a 55%, #8f6410); }
+.rope i::after { content: ''; position: absolute; left: 50%; bottom: -.4cqw; width: 3cqw; height: 1cqw; transform: translateX(-50%); border-radius: 50%; background: #b8860b; }
+.mdeco { width: 13cqw; height: 15cqw; display: grid; place-items: end center; }
+.mdeco span { font-size: 11cqw; line-height: 1; filter: drop-shadow(0 1.2cqw .8cqw #0005); transition: transform .2s; }
+.mdeco.filled::after { content: ''; position: absolute; bottom: -.6cqw; left: 20%; right: 20%; height: 1.6cqw; border-radius: 50%; background: #0004; filter: blur(.5cqw); z-index: -1; }
+.mdeco em { font: 800 5cqw 'Poppins', sans-serif; font-style: normal; color: #0004; }
+.mroom.editing .mf, .mroom.editing .pedestal, .mroom.editing .mdeco { cursor: pointer; }
+.mroom.editing .mf:hover .fr, .mroom.editing .ped-card:hover, .mroom.editing .mdeco:hover { outline: .4cqw dashed #ffcb05; outline-offset: .6cqw; }
+.mroom.editing .mdeco:not(.filled) { border: .3cqw dashed #0003; border-radius: 1.2cqw; }
+/* Ambiances */
+.t-galerie { --wall: linear-gradient(#f2f5f9, #e1e7ee); --wall2: linear-gradient(#e6ebf1, #d4dbe4); --ceil: #cdd6e0; --mat: #fff; --fborder: .7cqw solid #f5b301;
+  --floor: linear-gradient(90deg, #0000 95%, #b7c1cd 95%) 0 0 / 7cqw 7cqw, linear-gradient(#0000 95%, #b7c1cd 95%) 0 0 / 7cqw 7cqw, linear-gradient(#e9eef3, #d9e0e8); }
+.t-classique { --wall: linear-gradient(#0000 80%, #a85f60 80% 81%, #c47e7e 81%), linear-gradient(#e2a7a5, #d38f8e); --wall2: linear-gradient(#0000 80%, #9a5455 80% 81%, #b97172 81%), linear-gradient(#d69a98, #c58382);
+  --ceil: #c48886; --mat: #2a1a14; --fborder: 1cqw solid #c9962e;
+  --floor: linear-gradient(90deg, #0000 97%, #00000030 97%) 0 0 / 12cqw 12cqw, linear-gradient(#7c1d22, #a53338); }
+.t-classique .fr { box-shadow: inset 0 0 0 .3cqw #f3d58a, 0 0 0 .3cqw #7a5410, 0 1.2cqw 1.8cqw #0006; }
+.t-nuit { --wall: radial-gradient(#ffffffcc .12cqw, transparent .18cqw) 0 0 / 4cqw 4cqw, linear-gradient(#0b1033, #24205a); --wall2: radial-gradient(#ffffff99 .12cqw, transparent .18cqw) 0 0 / 5cqw 5cqw, linear-gradient(#0a0e2c, #1d1a4c);
+  --ceil: #070a22; --mat: #0d1030; --fborder: .7cqw solid #c9d0e6; --floor: radial-gradient(#ffffff14 .25cqw, transparent .35cqw) 0 0 / 3cqw 3cqw, linear-gradient(#2a1c52, #432c7a); }
+.t-nuit .cartel { background: #dfe4ff; }
+.t-bois { --wall: repeating-linear-gradient(90deg, #6b3e1f 0 5cqw, #5a3318 5cqw 5.3cqw, #74431f 5.3cqw 10cqw, #5a3318 10cqw 10.3cqw); --wall2: repeating-linear-gradient(90deg, #5e361b 0 5cqw, #4a2a13 5cqw 5.3cqw);
+  --ceil: #3d2412; --mat: #f3ead6; --fborder: .9cqw solid #3a2210; --floor: repeating-linear-gradient(90deg, #a76d3d 0 7cqw, #8f5b31 7cqw 7.3cqw), linear-gradient(#c58a52, #7a4a24); }
+@media (max-width: 760px) { .mroom { aspect-ratio: 4 / 3; --D: 40cqw; } }

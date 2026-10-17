@@ -1,8 +1,8 @@
 {
   "app.js": {
-    "mtime": 1792197552.4044242,
-    "seen": 1792197581.4195476,
-    "ast_hash": "9dcd2f7ea889860b568d29466f0963f4",
+    "mtime": 1792198098.7890127,
+    "seen": 1792198161.9691138,
+    "ast_hash": "4f08da62c1e4d8cbbb655917637e2410",
     "semantic_hash": ""
   },
   "data.js": {
@@ -12,15 +12,15 @@
     "semantic_hash": ""
   },
   "fanart.js": {
-    "mtime": 1792196673.635602,
-    "seen": 1792196701.5604863,
-    "ast_hash": "df6a920e821689f93142dca75a4bb0ae",
+    "mtime": 1792198006.940967,
+    "seen": 1792198161.9691138,
+    "ast_hash": "226e0197e7e48aa577023f58d99f3c60",
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792195099.8515518,
-    "seen": 1792195134.0619805,
-    "ast_hash": "1cc307e16b31e17ca353862245f8d5a7",
+    "mtime": 1792198098.7874825,
+    "seen": 1792198161.9691138,
+    "ast_hash": "eff926bbab11b2a93b2fb6c294b4cc79",
     "semantic_hash": ""
   },
   "scenes.js": {
@@ -177,6 +177,12 @@
     "mtime": 1792195050.7657857,
     "seen": 1792195134.0619805,
     "ast_hash": "995d7585ed50274225a104c33b4aba22",
+    "semantic_hash": ""
+  },
+  "museum.js": {
+    "mtime": 1792198056.5835278,
+    "seen": 1792198161.9691138,
+    "ast_hash": "ea4d7f460c71f8962cb5f5c84f147b47",
     "semantic_hash": ""
   }
 }
