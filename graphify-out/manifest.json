@@ -1,8 +1,8 @@
 {
   "app.js": {
-    "mtime": 1792195410.1532402,
-    "seen": 1792195448.3234315,
-    "ast_hash": "c99a0df062ad4e0e971a058c671ad35b",
+    "mtime": 1792195555.9002514,
+    "seen": 1792195592.3477724,
+    "ast_hash": "61e43e499268f14d9e822244a3fa6e85",
     "semantic_hash": ""
   },
   "data.js": {
@@ -12,9 +12,9 @@
     "semantic_hash": ""
   },
   "fanart.js": {
-    "mtime": 1792194802.7358265,
-    "seen": 1792194831.957568,
-    "ast_hash": "949c8b4819a68dc05707fe5d000ab160",
+    "mtime": 1792195588.4016917,
+    "seen": 1792195592.3477724,
+    "ast_hash": "97541beeb5adb3f090a525618b0989b7",
     "semantic_hash": ""
   },
   "index.html": {

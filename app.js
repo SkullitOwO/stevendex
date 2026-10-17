@@ -186,6 +186,7 @@ function openFlow(b, res) {
     flap.style.transformOrigin = `${p}% 9%`;
     flap.style.transform = `translateY(${-prog * 6}px) rotate(${-Math.min(14, prog * 18)}deg)`;
     rest.style.clipPath = `polygon(${p}% 0%, 100% 0%, 100% 9%, ${p}% 9%)`;
+    p3.style.setProperty("--p", p + "%"); // l'épaisseur et le dos se découpent avec le rabat
     fill.style.width = p + '%';
     scis.style.left = `calc(${p}% - 11px)`;
   };
