@@ -526,3 +526,5 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .turning .holo { display: none; }
 /* Chaque page garde ses reflets de pochette et ses pastilles chez elle : rien ne passe au-dessus de la feuille qui tourne */
 .page { isolation: isolate; }
+/* Les anneaux restent toujours devant la feuille qui tourne, comme un vrai classeur */
+.rings { position: relative; z-index: 40; }
