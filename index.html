@@ -16,6 +16,7 @@
     <button data-view="shop" class="on">Boosters</button>
     <button data-view="book">Classeur</button>
     <button data-view="market">Marché <span class="dot" id="dupCount"></span></button>
+    <button data-view="museum">Musée</button>
     <button data-view="play">Jouer</button>
   </nav>
   <div class="hud">
@@ -64,6 +65,18 @@
     </div>
     <div id="mkGrid" class="mk-grid"></div>
   </section>
+  <section id="museum" class="view">
+    <div class="shop-head">
+      <h1>Mon musée</h1>
+      <p>Expose tes plus belles cartes, décore la salle, puis partage le lien pour que tes amis la visitent.</p>
+    </div>
+    <div class="mu-bar">
+      <button class="btn ghost" id="muEdit">✏️ Décorer</button>
+      <select id="muTheme" aria-label="Ambiance de la salle"></select>
+      <button class="btn" id="muShare">🔗 Partager mon musée</button>
+    </div>
+    <div id="museumRoom"></div>
+  </section>
   <section id="play" class="view">
     <div class="shop-head">
       <h1>Jouer avec tes amis</h1>
@@ -96,5 +109,6 @@
 <script src="app.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="play.js"></script>
+<script src="museum.js"></script>
 </body>
 </html>

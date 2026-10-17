@@ -441,6 +441,7 @@ function show(v) {
   document.querySelectorAll('.tabs button').forEach(e => e.classList.toggle('on', e.dataset.view === v));
   if (v === 'book') renderBook();
   if (v === 'market') renderMarket();
+  if (v === 'museum') renderMuseum();
 }
 
 /* ---------- Événements ---------- */
