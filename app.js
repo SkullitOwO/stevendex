@@ -208,7 +208,7 @@ function openFlow(b, res) {
     if (!done) deck(b, res, () => done);
   };
   const rel = e => { const r = pk.getBoundingClientRect(); return (e.clientX - r.left) / r.width; };
-  pk.onpointerdown = e => { if (pk.classList.contains('torn')) return; dragging = true; x0 = e.clientX; pk.setPointerCapture(e.pointerId); pk.classList.add('cutting'); };
+  pk.onpointerdown = e => { e.preventDefault(); if (pk.classList.contains('torn')) return; dragging = true; x0 = e.clientX; pk.setPointerCapture(e.pointerId); pk.classList.add('cutting'); };
   pk.onpointermove = e => { if (dragging) setProg(rel(e)); };
   pk.onpointerup = async e => {
     if (!dragging) return;

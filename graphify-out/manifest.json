@@ -1,8 +1,8 @@
 {
   "app.js": {
-    "mtime": 1792194870.980219,
-    "seen": 1792194897.7579446,
-    "ast_hash": "c082cd98734a368223f47cdafb61f407",
+    "mtime": 1792195099.8515518,
+    "seen": 1792195134.0619805,
+    "ast_hash": "9c97c6e599eeac4e181919f00063ba17",
     "semantic_hash": ""
   },
   "data.js": {
@@ -18,9 +18,9 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792194807.605986,
-    "seen": 1792194831.957568,
-    "ast_hash": "94240d83a9eb5df9a59e8e1aa7036b3b",
+    "mtime": 1792195099.8515518,
+    "seen": 1792195134.0619805,
+    "ast_hash": "1cc307e16b31e17ca353862245f8d5a7",
     "semantic_hash": ""
   },
   "scenes.js": {
@@ -36,15 +36,147 @@
     "semantic_hash": ""
   },
   "play.js": {
-    "mtime": 1792194870.981732,
-    "seen": 1792194897.7579446,
-    "ast_hash": "21baf30995e7a96e2a5d53dd32b2f842",
+    "mtime": 1792195099.8515518,
+    "seen": 1792195134.0619805,
+    "ast_hash": "3c762424063eec839cbddb23576df859",
     "semantic_hash": ""
   },
   "steven.png": {
     "mtime": 1792194235.9076748,
     "seen": 1792194312.1058223,
     "ast_hash": "ac6cae8c022d44eeba4ef40b1d3fd483",
+    "semantic_hash": ""
+  },
+  "fx.js": {
+    "mtime": 1792195099.201499,
+    "seen": 1792195134.0619805,
+    "ast_hash": "edc4849ed66fa98c07fd296f8c3c7e46",
+    "semantic_hash": ""
+  },
+  "fx/LICENCE.txt": {
+    "mtime": 1792195130.028466,
+    "seen": 1792195134.0619805,
+    "ast_hash": "de1fce6a438ac73c9afb8279e12bc16a",
+    "semantic_hash": ""
+  },
+  "fx/circle3.png": {
+    "mtime": 1792195050.8030963,
+    "seen": 1792195134.0619805,
+    "ast_hash": "a7532aef205e7cc62b3539cabe9ff87f",
+    "semantic_hash": ""
+  },
+  "fx/circle5.png": {
+    "mtime": 1792195050.8144538,
+    "seen": 1792195134.0619805,
+    "ast_hash": "a2e000a951054de08c7298516e649e17",
+    "semantic_hash": ""
+  },
+  "fx/flame1.png": {
+    "mtime": 1792195050.7186823,
+    "seen": 1792195134.0619805,
+    "ast_hash": "83bf007e3e93b349f9c63717dfae3bfc",
+    "semantic_hash": ""
+  },
+  "fx/flame3.png": {
+    "mtime": 1792195050.730055,
+    "seen": 1792195134.0619805,
+    "ast_hash": "39d536d1e432f0aac57bb2023833ea49",
+    "semantic_hash": ""
+  },
+  "fx/light3.png": {
+    "mtime": 1792195050.6892738,
+    "seen": 1792195134.0619805,
+    "ast_hash": "10e290739d07cdde3920798ad5a74e80",
+    "semantic_hash": ""
+  },
+  "fx/magic1.png": {
+    "mtime": 1792195050.6263082,
+    "seen": 1792195134.0619805,
+    "ast_hash": "c495df652d329c1a62196f137cd6fd2c",
+    "semantic_hash": ""
+  },
+  "fx/magic3.png": {
+    "mtime": 1792195050.6392312,
+    "seen": 1792195134.0619805,
+    "ast_hash": "22228c181547173d2a678356323f0e8b",
+    "semantic_hash": ""
+  },
+  "fx/magic5.png": {
+    "mtime": 1792195050.651554,
+    "seen": 1792195134.0619805,
+    "ast_hash": "e6220419203736626815573ad37263f9",
+    "semantic_hash": ""
+  },
+  "fx/muzzle2.png": {
+    "mtime": 1792195050.7423236,
+    "seen": 1792195134.0619805,
+    "ast_hash": "7025abb2549049626bbc78306a3d70b6",
+    "semantic_hash": ""
+  },
+  "fx/scorch2.png": {
+    "mtime": 1792195050.8384833,
+    "seen": 1792195134.0619805,
+    "ast_hash": "6a6d6f2f94dfe0695f4b08ac4e3b5ad1",
+    "semantic_hash": ""
+  },
+  "fx/smoke1.png": {
+    "mtime": 1792195050.779167,
+    "seen": 1792195134.0619805,
+    "ast_hash": "9f8fb5d58d2cfd06e8c81461d8710ed4",
+    "semantic_hash": ""
+  },
+  "fx/spark1.png": {
+    "mtime": 1792195050.5273213,
+    "seen": 1792195134.0619805,
+    "ast_hash": "e8fcac97a5ecf54b131e5526e3e52fb9",
+    "semantic_hash": ""
+  },
+  "fx/spark2.png": {
+    "mtime": 1792195050.5412018,
+    "seen": 1792195134.0619805,
+    "ast_hash": "624186e1805cc94ed83839982d4fe735",
+    "semantic_hash": ""
+  },
+  "fx/spark5.png": {
+    "mtime": 1792195050.5660596,
+    "seen": 1792195134.0619805,
+    "ast_hash": "41f692a593897a62acab3c3d035fea70",
+    "semantic_hash": ""
+  },
+  "fx/spark6.png": {
+    "mtime": 1792195050.5892367,
+    "seen": 1792195134.0619805,
+    "ast_hash": "8c61b885d72cb1b36af4f7eff4a4db56",
+    "semantic_hash": ""
+  },
+  "fx/star6.png": {
+    "mtime": 1792195050.6974373,
+    "seen": 1792195134.0619805,
+    "ast_hash": "1bb2f909038285e13aeb4837f70b098b",
+    "semantic_hash": ""
+  },
+  "fx/star8.png": {
+    "mtime": 1792195050.7083263,
+    "seen": 1792195134.0619805,
+    "ast_hash": "0b2dc5e1d74c5b11d28c00913678dd0b",
+    "semantic_hash": ""
+  },
+  "fx/trace1.png": {
+    "mtime": 1792195050.8261702,
+    "seen": 1792195134.0619805,
+    "ast_hash": "b6e1f65a6734966ffd9ee65051f3a823",
+    "semantic_hash": ""
+  },
+  "fx/twirl1.png": {
+    "mtime": 1792195050.7522333,
+    "seen": 1792195134.0619805,
+    "ast_hash": "b630b9909dd9fd56eef5e15872ab32ef",
+    "semantic_hash": ""
+  },
+  "fx/twirl2.png": {
+    "mtime": 1792195050.7657857,
+    "seen": 1792195134.0619805,
+    "ast_hash": "995d7585ed50274225a104c33b4aba22",
     "semantic_hash": ""
   }
 }

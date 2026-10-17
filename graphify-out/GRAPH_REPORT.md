@@ -1,26 +1,26 @@
 # Graph Report - PokeBooster  (2026-10-17)
 
 ## Corpus Check
-- 6 files · ~10,239 words
+- 7 files · ~23,816 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: .css 1)
 
 ## Summary
-- 119 nodes · 262 edges · 14 communities (12 shown, 2 thin omitted)
+- 119 nodes · 259 edges · 16 communities (13 shown, 3 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ad2b364c`
+- Built from commit: `376888b3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - play.js
 - joinRoom
-- openPack
-- data.js
 - app.js
+- data.js
+- deck
 - renderShop
 - scenes.js
 - askAction
@@ -29,12 +29,14 @@
 - sfx.js
 - duelSetup
 - renderBook
+- summary
+- fx.js
 
 ## God Nodes (most connected - your core abstractions)
-1. `deck()` - 12 edges
-2. `send()` - 11 edges
-3. `joinRoom()` - 11 edges
-4. `duelSetup()` - 11 edges
+1. `send()` - 11 edges
+2. `joinRoom()` - 11 edges
+3. `duelSetup()` - 11 edges
+4. `deck()` - 10 edges
 5. `stage()` - 10 edges
 6. `hostRoom()` - 10 edges
 7. `duelWait()` - 10 edges
@@ -57,7 +59,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (14 total, 2 thin omitted)
+## Communities (16 total, 3 thin omitted)
 
 ### Community 0 - "play.js"
 Cohesion: 0.15
@@ -67,17 +69,17 @@ Nodes (15): BASE, G, inbox, mkSide(), net, netHost(), netJoin(), onMsg() (+7 mor
 Cohesion: 0.33
 Nodes (10): battleTeam(), endBattle(), errBox(), gameScreen(), hostRoom(), joinRoom(), netClose(), quitGame() (+2 more)
 
-### Community 2 - "openPack"
-Cohesion: 0.33
-Nodes (7): dist(), draw(), openPack(), owns(), pick(), poolOf(), roll()
+### Community 2 - "app.js"
+Cohesion: 0.22
+Nodes (12): dist(), draw(), openPack(), owns(), PAGES, pick(), poolOf(), RAR (+4 more)
 
 ### Community 3 - "data.js"
 Cohesion: 0.40
 Nodes (4): BOOSTERS, POKEMON, RARITIES, TYPES
 
-### Community 4 - "app.js"
-Cohesion: 0.18
-Nodes (17): backHTML(), burst(), confetti(), deck(), epicOf(), LABEL(), openFlow(), packHTML() (+9 more)
+### Community 4 - "deck"
+Cohesion: 0.25
+Nodes (9): backHTML(), confetti(), deck(), epicOf(), LABEL(), openFlow(), packHTML(), rcOf() (+1 more)
 
 ### Community 5 - "renderShop"
 Cohesion: 0.67
@@ -104,17 +106,21 @@ Cohesion: 0.64
 Nodes (8): duelReveal(), duelSetup(), duelWait(), recv(), runDuel(), stage(), startTeam(), waitBox()
 
 ### Community 13 - "renderBook"
-Cohesion: 0.38
-Nodes (7): closeOverlay(), pageHTML(), perView(), renderBook(), show(), summary(), turn()
+Cohesion: 0.83
+Nodes (4): pageHTML(), perView(), renderBook(), turn()
+
+### Community 14 - "summary"
+Cohesion: 0.67
+Nodes (3): closeOverlay(), show(), summary()
 
 ## Knowledge Gaps
-- **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `deck()` connect `app.js` to `cardHTML`, `renderBook`?**
-  _High betweenness centrality (0.004) - this node is a cross-community bridge._
+- **Why does `deck()` connect `deck` to `cardHTML`, `app.js`, `summary`?**
+  _High betweenness centrality (0.002) - this node is a cross-community bridge._
 - **Should `play.js` be split into smaller, more focused modules?**
   _Cohesion score 0.14705882352941177 - nodes in this community are weakly interconnected._
 - **Why does `joinRoom()` connect `joinRoom` to `play.js`, `duelSetup`?**

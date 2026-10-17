@@ -1,9 +1,9 @@
 {
   "0": "play.js",
   "1": "joinRoom",
-  "2": "openPack",
+  "2": "app.js",
   "3": "data.js",
-  "4": "app.js",
+  "4": "deck",
   "5": "renderShop",
   "6": "fanart.js",
   "7": "scenes.js",
@@ -12,5 +12,7 @@
   "10": "renderMarket",
   "11": "sfx.js",
   "12": "duelSetup",
-  "13": "renderBook"
+  "13": "renderBook",
+  "14": "summary",
+  "15": "fx.js"
 }
