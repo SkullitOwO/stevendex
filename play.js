@@ -206,7 +206,7 @@ console.assert(mult(6, 1) === 2 && mult(1, 6) === .5 && mult(25, 7) === 2, 'tabl
 // Passif de chaque carte, selon son type principal
 const PASSIVES = {
   feu: ['🔥', 'Brûlure', '25 % de chances de brûler la cible (−6 PV par tour, 3 tours).'],
-  eau: ['💧', 'Régénération', 'Récupère 6 % de ses PV max à chaque fin de tour.'],
+  eau: ['💧', 'Régénération', 'Récupère 3 % de ses PV max à chaque fin de tour.'],
   plante: ['🍃', 'Photosynthèse', 'Se soigne de 12 % de ses PV max quand il se protège.'],
   electrik: ['⚡', 'Paralysie', '20 % de chances que l\'adversaire perde son prochain tour.'],
   glace: ['❄️', 'Gel', '15 % de chances que l\'adversaire perde son prochain tour.'],
@@ -285,7 +285,7 @@ function resolve(S, acts, rnd = Math.random) {
     if (c.hp <= 0) continue;
     if (c.burn) { c.burn--; hurt(k, -6, 'Brûlure'); }
     if (c.psn && c.hp > 0) hurt(k, -4 * c.psn, 'Venin');
-    if (ptype(c) === 'eau' && c.hp > 0 && c.hp < c.max) hurt(k, Math.round(c.max * .06), 'Régénération');
+    if (ptype(c) === 'eau' && c.hp > 0 && c.hp < c.max) hurt(k, Math.max(1, Math.round(c.max * .03)), 'Régénération');
     c.turns++;
   }
   for (const k of ['A', 'B']) {

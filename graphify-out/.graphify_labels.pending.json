@@ -1,6 +1,6 @@
 {
   "0": "play.js",
-  "1": "battleTeam",
+  "1": "joinRoom",
   "2": "app.js",
   "3": "data.js",
   "4": "deck",
@@ -15,5 +15,6 @@
   "13": "renderBook",
   "14": "museum.js",
   "15": "fx.js",
-  "16": "decor3d.js"
+  "16": "decor3d.js",
+  "17": "devserver.py"
 }
