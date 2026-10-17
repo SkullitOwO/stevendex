@@ -248,7 +248,7 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 #bookBar { height: 100%; background: repeating-linear-gradient(45deg, #ffffff40 0 6px, transparent 6px 12px), var(--red); transition: width .4s; }
 .book-txt { font-weight: 900; font-size: 18px; }
 .book-wrap { display: flex; align-items: center; gap: 14px; width: 100%; justify-content: center; }
-.binder { position: relative; display: flex; width: min(1160px, 100%); padding: 18px; border-radius: 20px; perspective: 2600px;
+.binder { position: relative; display: flex; width: min(1160px, 100%); padding: 18px; border-radius: 20px; perspective: 1200px;
   background: radial-gradient(#ffffff14 1px, transparent 1.5px) 0 0 / 6px 6px, linear-gradient(160deg, #e03a14, #a61f07);
   border: 3px solid var(--navy); box-shadow: 0 10px 0 #6e1505, 0 24px 40px #0005, inset 0 0 0 6px #ffffff18; }
 .binder.v1 { width: min(560px, 100%); }
@@ -267,7 +267,7 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .pocket span { position: absolute; bottom: 8px; font-weight: 900; font-size: 12px; color: #9aa6b8; }
 .pocket .cnt { position: absolute; top: -7px; right: -7px; z-index: 10; background: var(--navy); color: #fff; font-size: 11px; padding: 2px 7px; border-radius: 99px; border: 2px solid #fff; }
 .pnum { position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; font-size: 12px; color: #b9ad92; font-weight: 900; }
-.turning { position: absolute; top: 18px; bottom: 18px; z-index: 30; transform-style: preserve-3d; }
+.turning { position: absolute; top: 18px; bottom: 18px; z-index: 50; transform-style: preserve-3d; }
 .turning.fwd { left: calc(50% + 17px); right: 18px; transform-origin: -17px 50%; animation: turnF .8s cubic-bezier(.45, .05, .55, .95) forwards; }
 .turning.bwd { left: 18px; right: calc(50% + 17px); transform-origin: calc(100% + 17px) 50%; animation: turnB .8s cubic-bezier(.45, .05, .55, .95) forwards; }
 @keyframes turnF { to { transform: rotateY(-180deg); } }
@@ -547,3 +547,6 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .turning.bwd .face:not(.backf) .page::before { right: 0; }
 .turning.bwd .backf .page::before { left: 0; }
 .binder.v1 .leaf-r .page::before { display: none; }
+/* Point de vue un peu decale pendant le tour : la page dressee passe visiblement devant le dos */
+.binder.turn-f { perspective-origin: 78% 50%; }
+.binder.turn-b { perspective-origin: 22% 50%; }
