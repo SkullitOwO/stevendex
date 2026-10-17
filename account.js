@@ -9,18 +9,11 @@ async function rpc(fn, args) {
   if (error) throw new Error(ERR[error.message] || error.message);
   return data;
 }
-function toast(msg) {
-  const t = document.createElement('div');
-  t.className = 'toast'; t.textContent = msg;
-  document.body.appendChild(t);
-  sfx.nope();
-  setTimeout(() => t.remove(), 3200);
-}
 
 // Copie l'état du serveur dans l'interface
 let museumSent = '';
 function applyState(s) {
-  Object.assign(state, { coins: s.coins, owned: s.cards, pityM: s.pity_m, pityS: s.pity_s, freeAt: Date.parse(s.free_at) }); // shortcut: horloge du PC pour le booster gratuit, le serveur revérifie
+  Object.assign(state, { coins: s.coins, owned: s.cards, pityM: s.pity_m, pityS: s.pity_s, freeAt: Date.parse(s.free_at), museumAt: Date.parse(s.museum_at) }); // shortcut: horloge du PC pour le booster gratuit, le serveur revérifie
   Object.assign(M, { wall: [], items: [], theme: 'galerie' }, s.museum, { inv: s.inv });
   M.wall = Array.from({ length: WALL }, (_, i) => M.wall[i] ?? null);
   museumSent = museumJSON();

@@ -75,6 +75,7 @@ function renderMuseum() {
   const room = $('#museumRoom');
   room.innerHTML = roomHTML(M, editing);
   fillItems(room, M.items);
+  cashTick();
   const sel = M.items[selected];
   $('#muTools').hidden = !editing;
   $('#muTools').innerHTML = `<button class="btn" data-t="add" ${M.items.length >= MAX_ITEMS ? 'disabled' : ''}>＋ Ajouter un meuble</button>
@@ -222,6 +223,29 @@ $('#muTheme').innerHTML = Object.entries(THEMES).map(([k, n]) => `<option value=
 $('#muTheme').onchange = e => { M.theme = e.target.value; save(); sfx.select(); renderMuseum(); };
 $('#muEdit').onclick = () => { editing = !editing; selected = -1; sfx.pop(); renderMuseum(); };
 $('#muShare').onclick = shareLink;
+
+/* Revenu passif : chaque carte exposée rapporte ses points de duel (dorée ×2, animée ×4) toutes les 10 minutes, 1 h de réserve max.
+   Le serveur recalcule tout (museum_collect) ; ici on ne fait qu'afficher. */
+const CASH_MS = 10 * 60e3, CASH_MAX = 6;
+const museumRate = () => [...new Set(M.wall)].filter(k => k && state.owned[k]).reduce((a, k) => { const { p, shiny } = keyInfo(k); return a + PTS[p.r] * [1, 2, 4][vRank(shiny)]; }, 0);
+function cashTick() {
+  const b = $('#muCash'), rate = museumRate(), n = Math.min(CASH_MAX, Math.floor((Date.now() - state.museumAt) / CASH_MS));
+  if (!rate) { b.disabled = true; b.innerHTML = 'Expose des cartes pour gagner des <i class="coin"></i>'; return; }
+  b.disabled = n < 1;
+  if (n >= 1) b.innerHTML = `💰 Récolter <i class="coin"></i>${n * rate}`;
+  else { const s = Math.ceil((state.museumAt + CASH_MS - Date.now()) / 1000); b.innerHTML = `<i class="coin"></i>${rate} / 10 min · ${String(s / 60 | 0).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; }
+}
+$('#muCash').onclick = async e => {
+  e.target.disabled = true;
+  try {
+    if (museumJSON() !== museumSent) { museumSent = museumJSON(); await rpc('museum_save', { p: JSON.parse(museumSent) }); } // le cadre qu'on vient d'accrocher compte
+    const r = await rpc('museum_collect');
+    applyState(r);
+    for (let i = 0; i < Math.min(8, Math.ceil(r.gain / 20)); i++) setTimeout(() => flyCoin($('#muCash')), i * 90);
+  } catch (err) { toast(err.message); }
+  cashTick();
+};
+setInterval(() => $('#museum').classList.contains('on') && cashTick(), 1000);
 $('#museumRoom').onclick = e => {
   if (!editing) return;
   const hit = hitAt($('#museumRoom'), e.clientX, e.clientY);

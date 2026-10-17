@@ -567,7 +567,7 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .visit-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; color: #fff; }
 .visit-head h2 { font: 900 32px 'Poppins', sans-serif; letter-spacing: -.5px; }
 .visit-head .btn { font-size: 15px; padding: 9px 18px; }
-.toast { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 100; background: #111113; color: #fff; font: 700 15px 'Poppins', sans-serif; padding: 12px 22px; border-radius: 99px; box-shadow: 0 10px 30px #0006; animation: deal .35s cubic-bezier(.2, 1.4, .4, 1); }
+.toast { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 999; max-width: calc(100% - 32px); text-align: center; background: #111113; color: #fff; font: 700 15px 'Poppins', sans-serif; padding: 12px 22px; border-radius: 99px; box-shadow: 0 10px 30px #0006; animation: deal .35s cubic-bezier(.2, 1.4, .4, 1); }
 @media (max-width: 760px) {
 }
 
@@ -662,7 +662,8 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 @keyframes blockPulse { 40% { scale: 1.05; } }
 
 /* ---------- Comptes, échanges, classement ---------- */
-.toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 999; background: var(--navy); color: #fff; font: 800 15px 'Poppins', sans-serif; padding: 12px 22px; border-radius: 99px; box-shadow: 0 10px 30px #0005; animation: deal .3s; max-width: calc(100% - 32px); text-align: center; }
+.mu-cash { background: linear-gradient(#5fd66b, #2fb344); color: #fff; box-shadow: 0 8px 22px #2fb34455, inset 0 2px 0 #fff6; }
+.mu-cash:disabled { background: #eef3f8; color: var(--mute); box-shadow: none; opacity: 1; }
 #auth { z-index: 500; display: grid; place-items: center; }
 .auth img { width: 72px; image-rendering: pixelated; border-radius: 14px; }
 .auth input { width: 100%; font: 800 16px 'Poppins', sans-serif; color: var(--navy); border: 2px solid var(--line); border-radius: 99px; padding: 11px 18px; outline: none; }
