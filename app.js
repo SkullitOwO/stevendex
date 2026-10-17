@@ -165,7 +165,7 @@ function openFlow(b, res) {
         <div class="op-front"><div class="op-light"></div>
           <div class="tear-rest">${packHTML(b)}</div><div class="tear-body">${packHTML(b)}</div><div class="tear-top">${packHTML(b)}</div>
           <div class="tear-line"><i id="cutFill"></i><span id="scis">✂</span></div></div>
-        <div class="op-back">${packBackHTML(b)}</div><div class="op-side l"></div><div class="op-side r"></div>
+        <div class="op-back">${packBackHTML(b)}</div>${Array.from({ length: 13 }, (_, i) => `<div class="op-layer" style="--z:${i - 6}"></div>`).join('')}
       </div></div>
       <p class="hint" id="hint">Glisse sur les pointillés pour déchirer · glisse au milieu pour le tourner</p>
     </div>`;

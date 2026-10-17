@@ -490,14 +490,13 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 .spinning { cursor: grabbing; }
 .op-front { position: absolute; inset: 0; transform: translateZ(7px); backface-visibility: hidden; }
 .op-back { position: absolute; inset: 0; transform: rotateY(180deg) translateZ(7px); backface-visibility: hidden; }
-.op-side { position: absolute; top: 4%; bottom: 4%; left: -7px; width: 14px; transform: rotateY(90deg); border-radius: 5px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 45%, #000), color-mix(in srgb, var(--c) 80%, #fff), color-mix(in srgb, var(--c) 45%, #000)); }
-.op-side.r { left: calc(100% - 7px); }
-.torn .op-back, .torn .op-side { display: none; }
-.pk-back { position: absolute; inset: 0; container-type: inline-size; overflow: hidden; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #fff; text-align: center;
+.torn .op-back, .torn .pk-back { position: absolute; inset: 0; container-type: inline-size; overflow: hidden; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #fff; text-align: center;
   background: repeating-linear-gradient(60deg, #ffffff12 0 6px, transparent 6px 14px), linear-gradient(135deg, color-mix(in srgb, var(--c) 45%, #000), var(--c) 50%, color-mix(in srgb, var(--c) 45%, #000));
   -webkit-mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / 8px 51% repeat-x, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 8px 51% repeat-x; }
 .pk-back img { width: 34%; border-radius: 50%; image-rendering: pixelated; background: #222; box-shadow: 0 0 0 1.4cqw #fff, 0 2cqw 5cqw #0006; margin-bottom: 3cqw; }
 .pk-back b { font: 900 13cqw 'Poppins', sans-serif; letter-spacing: -.3cqw; text-shadow: 0 1cqw 3cqw #0006; }
 .pk-back i { font: normal 700 4.2cqw 'Poppins', sans-serif; letter-spacing: .6cqw; text-transform: uppercase; opacity: .85; }
 .barcode { width: 40%; height: 9cqw; margin-top: 8cqw; border-radius: 1cqw; background: repeating-linear-gradient(90deg, #111 0 1.2cqw, #fff 1.2cqw 2cqw, #111 2cqw 2.6cqw, #fff 2.6cqw 4cqw), #fff; border: 1.4cqw solid #fff; }
+.op-layer { position: absolute; inset: 0; border-radius: 18px; transform: translateZ(calc(var(--z) * 1px));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 40%, #000), color-mix(in srgb, var(--c) 75%, #000) 50%, color-mix(in srgb, var(--c) 40%, #000));
+  -webkit-mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / 8px 51% repeat-x, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 8px 51% repeat-x; }
