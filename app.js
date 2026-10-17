@@ -151,35 +151,32 @@ function burst(host, color, n) {
   }
 }
 const epicOf = c => c.shiny || 'LM'.includes(c.p.r);
-function confetti(o, c) {
-  const pal = c.shiny ? ['#ffd76a', '#fff3b0', '#ffb300', '#fff'] : c.p.r === 'M' ? ['#ff6b6b', '#ffd93b', '#6bff95', '#5ac8ff', '#b46bff'] : ['#f5c518', '#fff1b0', '#fff', '#ffcb05'];
-  for (let i = 0; i < 110; i++) {
-    const k = document.createElement('i');
-    k.className = 'conf';
-    k.style.cssText = `left:${Math.random() * 100}vw;--c:${pal[i % pal.length]};--x:${(Math.random() - .5) * 240}px;--r:${Math.random() * 1080 - 540}deg;--t:${2.2 + Math.random() * 1.6}s;--d:${Math.random() * .7}s;width:${6 + Math.random() * 8}px`;
-    o.appendChild(k);
-    setTimeout(() => k.remove(), 4800);
-  }
-}
 const LABEL = c => c.shiny ? '✦ Carte dorée ✦' : c.p.r === 'M' ? '👑 Mythique !' : '★ Légendaire !';
 const rcOf = c => c.shiny ? '#ffd76a' : RAR[c.p.r].color;
 
+const packBackHTML = b => `<div class="pk-back" style="--c:${b.color}"><div class="crimp"></div><div class="crimp bot"></div>
+  <img src="steven.png" alt=""><b>StevenDex</b><i>Booster ${b.name} · 5 cartes</i><span class="barcode"></span></div>`;
 function openFlow(b, res) {
   const o = $('#overlay');
   o.hidden = false; o.className = 'overlay opening'; o.style.setProperty('--c', b.color); o.onclick = null;
   o.innerHTML = `<button class="skip" id="skip">Tout révéler ⏭</button>
     <div class="op-stage">
-      <div class="op-pack" id="opPack"><div class="op-light"></div>
-        <div class="tear-rest">${packHTML(b)}</div><div class="tear-body">${packHTML(b)}</div><div class="tear-top">${packHTML(b)}</div>
-        <div class="tear-line"><i id="cutFill"></i><span id="scis">✂</span></div></div>
-      <p class="hint" id="hint">Glisse le long des pointillés pour déchirer</p>
+      <div class="op-pack" id="opPack"><div class="op-3d" id="op3d">
+        <div class="op-front"><div class="op-light"></div>
+          <div class="tear-rest">${packHTML(b)}</div><div class="tear-body">${packHTML(b)}</div><div class="tear-top">${packHTML(b)}</div>
+          <div class="tear-line"><i id="cutFill"></i><span id="scis">✂</span></div></div>
+        <div class="op-back">${packBackHTML(b)}</div><div class="op-side l"></div><div class="op-side r"></div>
+      </div></div>
+      <p class="hint" id="hint">Glisse sur les pointillés pour déchirer · glisse au milieu pour le tourner</p>
     </div>`;
   sfx.whoosh();
   let done = false;
   $('#skip').onclick = () => { done = true; summary(b, res); };
   const pk = $('#opPack'), fill = $('#cutFill'), scis = $('#scis'), flap = pk.querySelector('.tear-top'), rest = pk.querySelector('.tear-rest');
   const J = Array.from({ length: 41 }, () => Math.random()); // bord déchiré irrégulier
-  let prog = 0, dragging = false, lastTick = 0, x0 = 0;
+  let prog = 0, mode = null, lastTick = 0, x0 = 0, y0 = 0;
+  const p3 = $('#op3d');
+  const spin = (x, y, smooth) => { p3.style.transition = smooth ? 'transform .7s cubic-bezier(.2, 1.5, .4, 1)' : 'none'; p3.style.transform = `rotateX(${x}deg) rotateY(${y}deg)`; };
   // Le rabat déjà découpé (de 0 au doigt) se soulève en pivotant autour du doigt ; le reste du haut reste collé.
   const drawTear = () => {
     const p = prog * 100;
@@ -208,14 +205,29 @@ function openFlow(b, res) {
     if (!done) deck(b, res, () => done);
   };
   const rel = e => { const r = pk.getBoundingClientRect(); return (e.clientX - r.left) / r.width; };
-  pk.onpointerdown = e => { e.preventDefault(); if (pk.classList.contains('torn')) return; dragging = true; x0 = e.clientX; pk.setPointerCapture(e.pointerId); pk.classList.add('cutting'); };
-  pk.onpointermove = e => { if (dragging) setProg(rel(e)); };
+  // En haut on découpe, ailleurs on fait tourner le booster (il revient en place au relâchement)
+  pk.onpointerdown = e => {
+    e.preventDefault();
+    if (pk.classList.contains('torn')) return;
+    const r = pk.getBoundingClientRect();
+    x0 = e.clientX; y0 = e.clientY;
+    pk.setPointerCapture(e.pointerId);
+    mode = (e.clientY - r.top) / r.height < .22 ? 'cut' : 'spin';
+    pk.classList.add(mode === 'cut' ? 'cutting' : 'spinning');
+    if (mode === 'cut') spin(0, 0, true);
+  };
+  pk.onpointermove = e => {
+    if (mode === 'cut') setProg(rel(e));
+    else if (mode === 'spin') spin(Math.max(-25, Math.min(25, (y0 - e.clientY) * .3)), Math.max(-40, Math.min(40, (e.clientX - x0) * .35)));
+  };
   pk.onpointerup = async e => {
-    if (!dragging) return;
-    dragging = false;
-    pk.classList.remove('cutting');
+    const m = mode, still = Math.abs(e.clientX - x0) < 8 && Math.abs(e.clientY - y0) < 8;
+    mode = null;
+    pk.classList.remove('cutting', 'spinning');
+    if (!m) return;
+    if (m === 'spin') { spin(0, 0, true); if (!still) return; }
     if (prog > .6) return tear();
-    if (Math.abs(e.clientX - x0) < 8) { // simple clic : les ciseaux font le tour tout seuls
+    if (still) { // simple clic : les ciseaux font le tour tout seuls
       for (let v = prog; v <= 1; v += .08) { setProg(v); await wait(28); }
       return tear();
     }
@@ -266,7 +278,6 @@ function deck(b, res, skipped) {
         o.classList.add('quake', c.shiny ? 'gold' : c.p.r === 'M' ? 'myth' : 'leg');
         sfx.epic();
         FX.explode(f, c.p.types[0], col, 1.6);
-        confetti(o, c);
         deckEl.insertAdjacentHTML('beforeend', `<div class="banner" style="--rc:${col}">${[...LABEL(c)].map((ch, n) => `<span style="--i:${n}">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('')}</div>
           <div class="reveal-name" style="--rc:${col}">${c.p.name}<small>${RAR[c.p.r].name}${c.shiny ? ' · dorée' : ''}</small></div>`);
         await wait(1100);
@@ -468,7 +479,7 @@ addEventListener('resize', () => !turning && $('#book').classList.contains('on')
 
 // Inclinaison 3D + reflet holo qui suit la souris
 document.addEventListener('pointermove', e => {
-  const el = e.target.closest('.card, .slot.on .pack, .op-pack:not(.cutting)');
+  const el = e.target.closest('.card, .slot.on .pack');
   if (!el) return;
   const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
   el.style.setProperty('--rx', (0.5 - y) * 18 + 'deg');
@@ -477,7 +488,7 @@ document.addEventListener('pointermove', e => {
   el.style.setProperty('--my', y * 100 + '%');
 });
 document.addEventListener('pointerout', e => {
-  const el = e.target.closest('.card, .pack, .op-pack');
+  const el = e.target.closest('.card, .pack');
   if (el && !el.contains(e.relatedTarget)) { el.style.removeProperty('--rx'); el.style.removeProperty('--ry'); }
 });
 
