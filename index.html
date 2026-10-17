@@ -18,6 +18,7 @@
     <button data-view="market">Marché <span class="dot" id="dupCount"></span></button>
     <button data-view="museum">Musée</button>
     <button data-view="play">Jouer</button>
+    <button data-view="friends">Amis <span class="dot" id="tradeCount"></span></button>
   </nav>
   <div class="hud">
     <span class="hud-dex" title="Pokémon dans ton classeur"><i class="hud-bar"><b id="hudBar"></b></i><span id="bookCount"></span></span>
@@ -78,12 +79,23 @@
     <div id="museumRoom"></div>
     <div class="mu-tools" id="muTools" hidden></div>
   </section>
+  <section id="friends" class="view">
+    <div class="shop-head">
+      <h1>Amis</h1>
+      <p>Échange des cartes avec tes amis et grimpe au classement des collectionneurs.</p>
+    </div>
+    <div class="fr-cols">
+      <div class="fr-box"><h2>Échanges</h2>
+        <div class="join"><input id="trTo" placeholder="Pseudo de ton ami" maxlength="16" autocomplete="off"><button class="btn" id="trNew">Proposer un échange</button></div>
+        <div id="trList"></div></div>
+      <div class="fr-box"><h2>Classement</h2><div id="lbList"></div></div>
+    </div>
+  </section>
   <section id="play" class="view">
     <div class="shop-head">
       <h1>Jouer avec tes amis</h1>
       <p>Crée un salon et envoie le code, ou rejoins celui d'un ami.</p>
     </div>
-    <label class="pl-name">Ton pseudo <input id="plName" maxlength="16" autocomplete="off"></label>
     <div class="modes">
       <div class="mode" data-mode="duel" style="--c:#f5a518">
         <div class="mode-ico">🎴</div>
@@ -107,10 +119,12 @@
 <script src="fanart.js"></script>
 <script src="sfx.js"></script>
 <script src="fx.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="app.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="play.js"></script>
 <script src="museum.js"></script>
+<script src="account.js"></script>
 <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }</script>
 <script type="module" src="decor3d.js"></script>
 </body>

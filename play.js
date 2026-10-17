@@ -2,8 +2,9 @@
 const PTS = { C: 1, R: 3, E: 8, L: 20, M: 50 };
 const STAKES = [50, 100, 250, 500];
 const G = { online: true, oppName: 'Ton ami', S: null, me: 'A' };
-let myName = 'Dresseur';
-try { myName = localStorage.getItem('boosterdex-name') || 'Dresseur'; } catch {}
+let myName = 'Dresseur'; // remplacé par le pseudo du compte
+// Chaque partie d'un salon a un identifiant commun aux deux joueurs (code du salon + numéro), pour que le serveur rapproche leurs déclarations
+const matchId = () => `${G.room}-${++G.n}`;
 
 /* Réseau pair-à-pair (PeerJS) : le site reste statique, les deux navigateurs se parlent directement. */
 const net = { peer: null, conn: null, host: false, onjoin: null, onclose: null };
@@ -63,7 +64,7 @@ const vsTxt = () => `contre <b>${G.oppName}</b>`;
 async function hostRoom(mode) {
   gameScreen(waitBox('Création du salon…'));
   let code;
-  try { code = await netHost(); } catch { return stage(errBox('Impossible de créer le salon. Vérifie ta connexion internet.')); }
+  try { code = await netHost(); G.room = code; G.n = 0; } catch { return stage(errBox('Impossible de créer le salon. Vérifie ta connexion internet.')); }
   stage(`<div class="g-card"><h2>${mode === 'duel' ? 'Duel de boosters' : 'Combat de cartes'}</h2><p>Envoie ce code à ton ami :</p>
     <div class="code">${code}</div><div class="spinner"></div><p class="muted">En attente d'un joueur…</p></div>`);
   net.onclose = () => stage(errBox(`${G.oppName} a quitté la partie.`));
@@ -76,6 +77,7 @@ async function hostRoom(mode) {
 }
 async function joinRoom(code) {
   gameScreen(waitBox(`Connexion au salon ${code}…`));
+  G.room = code; G.n = 0;
   try { await netJoin(code); } catch { netClose(); return stage(errBox('Salon introuvable. Vérifie le code et que ton ami est toujours dans son salon.')); }
   net.onclose = () => stage(errBox(`${G.oppName} a quitté la partie.`));
   const h = await recv('hello');
@@ -130,19 +132,24 @@ async function duelWait() {
   };
 }
 async function runDuel(bi, stake) {
-  const b = BOOSTERS[bi];
-  state.coins -= b.price;
-  const mine = openPack(b).cards;
-  save(); renderTop(); renderShop();
+  const b = BOOSTERS[bi], mid = matchId();
+  let mine, pack;
+  try { ({ cards: mine, pack } = await openPack(b)); } catch (e) { send({ t: 'pack', cards: [] }); return stage(errBox(e.message)); }
   let theirs;
   {
     send({ t: 'pack', cards: mine.map(c => [c.p.id, vRank(c.shiny)]) });
     stage(waitBox(`${G.oppName} ouvre son booster…`));
     theirs = (await recv('pack')).cards.map(([id, s]) => ({ p: POKEMON[id - 1], shiny: s === 2 ? 'anim' : !!s }));
   }
-  duelReveal(stake, mine, theirs);
+  if (!theirs.length) return stage(errBox(`${G.oppName} n'a pas pu ouvrir son booster.`));
+  // Le serveur compare les deux boosters qu'il a lui-même tirés et transfère la mise
+  const settle = rpc('duel_report', { p_code: mid, p_pack: pack, p_stake: stake }).then(async r => {
+    for (let i = 0; r.status !== 'settled' && i < 20; i++) { await wait(1500); r = await rpc('duel_result', { p_code: mid }); }
+    return r;
+  });
+  duelReveal(stake, mine, theirs, settle);
 }
-async function duelReveal(stake, mine, theirs) {
+async function duelReveal(stake, mine, theirs, settle) {
   const row = (cs, id) => `<div class="du-row" id="${id}">${cs.map(c => `<div class="flip du-card" style="--rc:${rcOf(c)}">
     <div class="flip-in">${backHTML()}<div class="front">${cardHTML(c.p, c.shiny)}</div></div></div>`).join('')}</div>`;
   stage(`<div class="duel">
@@ -168,8 +175,12 @@ async function duelReveal(stake, mine, theirs) {
       await wait(epic ? 1000 : 520);
     }
   }
-  const win = sc.sMe > sc.sOpp, tie = sc.sMe === sc.sOpp;
-  if (!tie) { state.coins += win ? stake : -stake; save(); renderTop(); }
+  const r = await settle.catch(() => ({}));
+  if (r.state) applyState(r.state);
+  const win = r.delta > 0, tie = r.delta === 0;
+  if (!$('#duEnd')) return;
+  if (r.status !== 'settled') { $('#duEnd').innerHTML = `<p>Le serveur n'a pas pu confirmer le duel : la mise n'a pas bougé.</p><div class="sum-actions"><button class="btn ghost" onclick="quitGame()">Quitter</button></div>`; return; }
+  stake = Math.abs(r.delta) || stake;
   (win ? sfx.win : tie ? sfx.pop : sfx.lose)();
   const end = $('#duEnd');
   if (!end) return;
@@ -540,10 +551,12 @@ async function playRound(ev, D) {
 }
 function endBattle(losers) {
   const tie = losers.length === 2, win = !tie && !losers.includes(G.me), prize = 120;
-  if (win) { state.coins += prize; save(); renderTop(); }
+  // La prime n'est versée que si les deux joueurs déclarent le même gagnant (5 par jour)
+  rpc('battle_report', { p_code: matchId(), p_winner: tie ? '-' : win ? myName : G.oppName })
+    .then(r => r.state ? applyState(r.state) : wait(4000).then(refreshState)).catch(() => {});
   (win ? sfx.win : tie ? sfx.pop : sfx.lose)();
   $('#acts').innerHTML = `<div class="bt-end"><h2 class="${win ? 'win' : tie ? '' : 'lose'}">${win ? 'Victoire !' : tie ? 'Égalité' : 'Défaite…'}</h2>
-    <p>${win ? `Tu gagnes <i class="coin"></i>${prize}` : tie ? 'Les deux équipes sont K.O.' : 'Retente ta chance avec une autre équipe.'}</p>
+    <p>${win ? `Tu gagnes <i class="coin"></i>${prize} (5 primes par jour)` : tie ? 'Les deux équipes sont K.O.' : 'Retente ta chance avec une autre équipe.'}</p>
     <div class="sum-actions"><button class="btn" id="rematch">Revanche</button><button class="btn ghost" id="leave">Quitter</button></div></div>`;
   if (win) burst($('#acts'), '#ffd76a', 60);
   $('#acts').onclick = e => {
@@ -554,15 +567,7 @@ function endBattle(losers) {
 
 /* ---------- Onglet Jouer ---------- */
 const setAvatar = () => { $('#avatar').textContent = myName[0].toUpperCase(); $('#avatar').title = myName; };
-$('#plName').value = myName;
-setAvatar();
-$('#plName').onchange = e => {
-  myName = e.target.value.trim().slice(0, 16) || 'Dresseur';
-  e.target.value = myName;
-  try { localStorage.setItem('boosterdex-name', myName); } catch {}
-  setAvatar();
-};
-$('#avatar').onclick = () => { show('play'); $('#plName').focus(); };
+$('#avatar').onclick = () => confirm(`Connecté en tant que ${myName}. Se déconnecter ?`) && logout();
 $('#play').onclick = e => {
   const b = e.target.closest('[data-act]');
   if (!b) return;

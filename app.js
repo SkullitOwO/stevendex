@@ -3,10 +3,9 @@ const SAVE = 'boosterdex-v1', FREE_MS = 5 * 60e3, PITY_M = 150, PITY_S = 15, SHI
 const RAR = Object.fromEntries(RARITIES.map(r => [r.key, r]));
 const RKEYS = RARITIES.map(r => r.key);
 
-let saved = {};
-try { saved = JSON.parse(localStorage.getItem(SAVE)) || {}; } catch {}
-const state = Object.assign({ coins: 1000, owned: {}, pityM: 0, pityS: 0, freeAt: 0 }, saved);
-const save = () => { try { localStorage.setItem(SAVE, JSON.stringify(state)); } catch {} };
+// La collection vit sur le serveur (account.js) : state n'est qu'une copie de my_state()
+const state = { coins: 0, owned: {}, pityM: 0, pityS: 0, freeAt: 0 };
+const save = () => window.onSave?.();
 let sel = 0;
 
 const pad = n => String(n).padStart(3, '0');
@@ -23,54 +22,13 @@ const vRank = s => (s === 'anim' ? 2 : s ? 1 : 0);
 const keyInfo = k => ({ p: POKEMON[parseInt(k) - 1], shiny: k.endsWith('a') ? 'anim' : k.endsWith('s') });
 const priceOf = k => { const { p, shiny } = keyInfo(k); return RAR[p.r].dup * [1, 3, 12][vRank(shiny)]; };
 
-// Probabilité de chaque rareté pour une carte ; une rareté absente du booster cède son poids à la suivante en dessous.
-function dist(pool, guar) {
-  const have = new Set(pool.map(p => p.r)), d = {};
-  let carry = 0;
-  for (const r of [...RARITIES].reverse()) {
-    const w = (guar ? r.guar : r.weight) + carry;
-    if (have.has(r.key)) { d[r.key] = w; carry = 0; } else { d[r.key] = 0; carry = w; }
-  }
-  const sum = RKEYS.reduce((a, k) => a + d[k], 0);
-  for (const k of RKEYS) d[k] /= sum;
-  return d;
-}
-function roll(d) {
-  let x = Math.random();
-  for (const k of RKEYS) if (d[k] && (x -= d[k]) < 0) return k;
-  return RKEYS.findLast(k => d[k]);
-}
-// Jamais de tirage dans une rareté vide
-BOOSTERS.forEach(b => [false, true].forEach(g => {
-  const pool = poolOf(b), d = dist(pool, g);
-  console.assert(RKEYS.every(k => !d[k] || pool.some(p => p.r === k)), 'rareté vide', b.id);
-}));
-
-// Jamais deux fois le même Pokémon dans un booster ; une carte déjà possédée est retirée une fois pour limiter les doublons.
-function draw(pool, r, taken) {
-  let bucket = pool.filter(p => p.r === r && !taken.has(p.id));
-  if (!bucket.length) bucket = pool.filter(p => !taken.has(p.id));
-  let p = pick(bucket);
-  if (owns(p)) p = pick(bucket);
-  taken.add(p.id);
-  return p;
-}
-function openPack(b) {
-  const pool = poolOf(b), n = dist(pool, false), g = dist(pool, true), taken = new Set();
-  state.pityM++; state.pityS++;
-  const rars = [roll(n), roll(n), roll(n), roll(n), n.M && state.pityM >= PITY_M ? 'M' : roll(g)];
-  const cards = rars.map(r => ({ p: draw(pool, r, taken), shiny: Math.random() < SHINY }));
-  if (state.pityS >= PITY_S && !cards.some(c => c.shiny)) pick(cards).shiny = true;
-  for (const c of cards) if (window.ANIM?.[c.p.id] && Math.random() < ANIM_P) c.shiny = 'anim';
-  if (cards.some(c => c.p.r === 'M')) state.pityM = 0;
-  if (cards.some(c => c.shiny)) state.pityS = 0;
-  for (const c of cards) {
-    const k = keyOf(c);
-    c.isNew = !state.owned[k];
-    state.owned[k] = (state.owned[k] || 0) + 1;
-  }
+// Le tirage se fait sur le serveur (open_pack) : impossible de tricher sur les cartes
+async function openPack(b) {
+  const r = await rpc('open_pack', { p_booster: b.id });
+  applyState(r.state);
+  const cards = r.cards.map(c => ({ p: POKEMON[c.id - 1], shiny: c.v === 2 ? 'anim' : !!c.v, isNew: c.new }));
   cards.sort((a, b) => RKEYS.indexOf(a.p.r) - RKEYS.indexOf(b.p.r) || vRank(a.shiny) - vRank(b.shiny));
-  return { cards };
+  return { cards, pack: r.pack };
 }
 
 /* ---------- Rendus ---------- */
@@ -134,13 +92,12 @@ function renderTop() {
   $('#bookBar').style.width = got / POKEMON.length * 100 + '%';
   $('#mute').textContent = sfx.muted ? '🔇' : '🔊';
 }
-function buy() {
+let buying = false;
+async function buy() {
   const b = BOOSTERS[sel], free = Date.now() >= state.freeAt;
-  if (!free && state.coins < b.price) return;
-  if (free) state.freeAt = Date.now() + FREE_MS; else state.coins -= b.price;
-  const res = openPack(b);
-  save(); renderTop(); renderShop();
-  openFlow(b, res);
+  if (buying || (!free && state.coins < b.price)) return;
+  buying = true;
+  try { openFlow(b, await openPack(b)); } catch (e) { toast(e.message); } finally { buying = false; }
 }
 
 /* ---------- Ouverture ---------- */
@@ -421,7 +378,7 @@ function flyCoin(from) {
   };
 }
 let armed = null;
-function sell(btn) {
+async function sell(btn) {
   const k = btn.dataset.k, n = state.owned[k];
   if (!n) return;
   if (n === 1 && armed !== btn) { // dernier exemplaire : on demande confirmation
@@ -430,10 +387,8 @@ function sell(btn) {
     return;
   }
   armed = null;
-  state.owned[k] = n - 1;
-  if (!state.owned[k]) delete state.owned[k];
-  state.coins += priceOf(k);
-  save(); flyCoin(btn); renderTop(); renderMarket();
+  btn.disabled = true;
+  try { applyState(await rpc('sell_card', { p_k: k })); flyCoin(btn); } catch (e) { toast(e.message); renderMarket(); }
 }
 
 function show(v) {
@@ -442,6 +397,7 @@ function show(v) {
   if (v === 'book') renderBook();
   if (v === 'market') renderMarket();
   if (v === 'museum') renderMuseum();
+  if (v === 'friends') renderFriends();
 }
 
 /* ---------- Événements ---------- */
@@ -469,13 +425,12 @@ $('#pgNext').onclick = () => turn(1);
 $('#mute').onclick = () => { sfx.toggle(); renderTop(); };
 $('#mkDups').onchange = renderMarket;
 $('#mkGrid').onclick = e => { const b = e.target.closest('.sell'); if (b) sell(b); };
-$('#mkSellAll').onclick = e => {
+$('#mkSellAll').onclick = async e => {
   const keys = dupKeys();
   if (!keys.length) return;
-  for (const k of keys) { state.coins += (state.owned[k] - 1) * priceOf(k); state.owned[k] = 1; }
-  save();
+  e.target.disabled = true;
+  try { applyState(await rpc('sell_dups')); } catch (err) { return toast(err.message); }
   for (let i = 0; i < Math.min(keys.length, 8); i++) setTimeout(() => flyCoin(e.target), i * 90);
-  renderTop(); renderMarket();
 };
 document.querySelector('.tabs').onclick = e => e.target.closest('button') && show(e.target.closest('button').dataset.view);
 document.addEventListener('keydown', e => {
@@ -514,6 +469,5 @@ document.addEventListener('pointerout', e => {
   if (el && !el.contains(e.relatedTarget)) { el.style.removeProperty('--rx'); el.style.removeProperty('--ry'); }
 });
 
-renderTop();
 renderShop();
 setInterval(tick, 1000);

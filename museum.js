@@ -112,14 +112,14 @@ function pickFurniture() {
   };
   o.hidden = false; o.className = 'overlay zoomed';
   draw();
-  o.onclick = e => {
+  o.onclick = async e => {
     const b = e.target.closest('[data-put], [data-buy], [data-close]');
     if (!b && e.target !== o) return;
     if (b?.dataset.buy) {
       const pr = FURN[b.dataset.buy][1];
       if (state.coins < pr) return sfx.nope();
-      state.coins -= pr; M.inv[b.dataset.buy] = (M.inv[b.dataset.buy] || 0) + 1;
-      save(); renderTop(); sfx.coin(); flyCoin(b);
+      try { applyState(await rpc('buy_furniture', { p_id: b.dataset.buy })); } catch (err) { return toast(err.message); }
+      sfx.coin(); flyCoin(b);
       return draw();
     }
     if (b?.dataset.put) {

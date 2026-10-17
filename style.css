@@ -660,3 +660,34 @@ h1 { font: 900 40px 'Poppins', sans-serif; letter-spacing: -1px; color: var(--na
 
 .blocked .ft-card { filter: drop-shadow(0 0 18px #7dd3fc) drop-shadow(0 0 6px #fff); animation: blockPulse .5s; }
 @keyframes blockPulse { 40% { scale: 1.05; } }
+
+/* ---------- Comptes, échanges, classement ---------- */
+.toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 999; background: var(--navy); color: #fff; font: 800 15px 'Poppins', sans-serif; padding: 12px 22px; border-radius: 99px; box-shadow: 0 10px 30px #0005; animation: deal .3s; max-width: calc(100% - 32px); text-align: center; }
+#auth { z-index: 500; display: grid; place-items: center; }
+.auth img { width: 72px; image-rendering: pixelated; border-radius: 14px; }
+.auth input { width: 100%; font: 800 16px 'Poppins', sans-serif; color: var(--navy); border: 2px solid var(--line); border-radius: 99px; padding: 11px 18px; outline: none; }
+.auth input:focus { border-color: var(--blue); }
+.auth .btn { font-size: 17px; padding: 10px 22px; }
+.auth .warn:empty { display: none; }
+#friends { flex-direction: column; align-items: center; padding: 26px 16px 48px; gap: 18px; }
+.fr-cols { display: grid; grid-template-columns: 1.6fr 1fr; gap: 22px; width: min(1160px, 100%); align-items: start; }
+.fr-box { background: #fff; border-radius: 22px; padding: 22px; box-shadow: 0 8px 24px #1d2c5e14; display: flex; flex-direction: column; gap: 14px; }
+.fr-box h2 { font: 900 22px 'Poppins', sans-serif; color: var(--navy); }
+#friends .join input { width: auto; flex: 1; min-width: 0; letter-spacing: 0; text-transform: none; text-align: left; }
+.muted { color: var(--mute); font-weight: 700; font-size: 14px; }
+.tr-item { border: 2px solid var(--line); border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.tr-item.pend { border-color: var(--yel); background: #fffbea; }
+.tr-item > p { font-weight: 700; color: var(--mute); } .tr-item b { color: var(--navy); }
+.tr-sides { display: flex; align-items: center; gap: 10px; } .tr-sides > span { font-size: 22px; color: var(--mute); }
+.tr-sides > div { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.tr-sides small { width: 100%; font: 800 11px 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 1px; color: var(--mute); }
+.tr-c { position: relative; width: 74px; } .tr-c .card { box-shadow: 0 2px 6px #0003; }
+.tr-c b { position: absolute; right: -4px; bottom: -4px; background: var(--navy); color: #fff; font-size: 11px; border-radius: 99px; padding: 1px 6px; }
+.tr-coins, .tr-coin { font: 800 15px 'Poppins', sans-serif; color: var(--navy); display: inline-flex; align-items: center; gap: 4px; }
+.tr-coin input { width: 110px; font: 800 15px 'Poppins', sans-serif; border: 2px solid var(--line); border-radius: 99px; padding: 6px 12px; color: var(--navy); }
+.tr-act { display: flex; gap: 8px; justify-content: flex-end; } .tr-act .btn { font-size: 14px; padding: 7px 16px; }
+.tr-st { font-weight: 800; color: var(--mute); font-size: 14px; }
+.lb { list-style: none; padding: 0; width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.lb li { display: grid; grid-template-columns: 34px 1fr auto auto; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 12px; background: #f3f7fc; font-weight: 800; color: var(--navy); }
+.lb li.me { background: #fff3c4; } .lb span { text-align: center; } .lb em { font-style: normal; } .lb small { color: #c79a00; }
+@media (max-width: 800px) { .fr-cols { grid-template-columns: 1fr; } }
